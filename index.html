@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>GENESI – Connexion</title>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
@@ -54,25 +55,26 @@ button:hover {
 
 <script>
 /* ================= CONFIG ================= */
-const SUPABASE_URL = "https://gktawbaposndfxijkxdk.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdrdGF3YmFwb3NuZGZ4aWpreGRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwNzUyNDUsImV4cCI6MjA3OTY1MTI0NX0.tY-CHuyb2zr9s6hlGkwmrdTvg920VVNghI9S45CjwKk";
+const SUPABASE_URL = "COLLE_ICI_TON_URL";
+const SUPABASE_KEY = "COLLE_ICI_TA_CLE_ANON";
 
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+/* ⚠️ IMPORTANT : on ne s'appelle PAS supabase */
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 /* ================= LOGIN ================= */
 async function login() {
-  loader.style.display = "block";
+  document.getElementById("loader").style.display = "block";
 
-  const userEmail = email.value.trim();
-  const userPass = password.value.trim();
+  const userEmail = document.getElementById("email").value.trim();
+  const userPass = document.getElementById("password").value.trim();
 
   if (!userEmail || !userPass) {
     alert("Merci de remplir tous les champs");
-    loader.style.display = "none";
+    document.getElementById("loader").style.display = "none";
     return;
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from("login_genesi")
     .select("email, role")
     .eq("email", userEmail)
@@ -81,14 +83,14 @@ async function login() {
 
   if (error || !data) {
     alert("Identifiants incorrects");
-    loader.style.display = "none";
+    document.getElementById("loader").style.display = "none";
     return;
   }
 
   /* Sauvegarde session */
   localStorage.setItem("genesi_user", JSON.stringify(data));
 
-  /* Simulation chargement */
+  /* Effet chargement */
   setTimeout(() => {
     window.location.href = "home.html";
   }, 2000);
