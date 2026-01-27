@@ -3,19 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <title>GENESI – Home</title>
-<link rel="icon" type="image/png" href="https://i.imgur.com/vEMjW0C.png">
+<link rel="icon" href="https://i.imgur.com/vEMjW0C.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 body { font-family: Arial; background:#020617; color:white; margin:0; }
 header { background:#020617; padding:15px; display:flex; justify-content:space-between; align-items:center; }
-.logo { height:45px; }
-.admin-nav { padding:10px; background:#1e293b; display:none; }
-.admin-nav button { margin:5px; padding:8px 15px; border:none; border-radius:5px; background:#3b82f6; color:white; cursor:pointer; }
+.logo { height:40px; }
+.admin-nav { background:#1e293b; padding:10px; display:none; }
+.admin-nav button { margin-right:10px; padding:8px 14px; border:none; border-radius:5px; background:#3b82f6; color:white; cursor:pointer; }
 .admin-nav button:hover { background:#2563eb; }
-.card { background:#0f172a; margin:10px; padding:15px; border-radius:8px; }
+.card { background:#1e293b; margin:10px; padding:15px; border-radius:8px; }
 input { width:60px; }
-button { background:#10b981; border:none; padding:6px 12px; color:white; border-radius:4px; cursor:pointer; }
+button { background:#10b981; border:none; color:white; padding:6px 12px; border-radius:4px; cursor:pointer; }
+button:hover { background:#059669; }
 .logout { background:#ef4444; }
 .search { padding:10px; background:#020617; }
 </style>
@@ -26,13 +27,13 @@ button { background:#10b981; border:none; padding:6px 12px; color:white; border-
 <header>
   <div>
     <img src="https://i.imgur.com/vEMjW0C.png" class="logo">
-    <b>GENESI – Gestion Médicaments</b>
+    <b>GENESI</b>
   </div>
   <button class="logout" onclick="logout()">Déconnexion</button>
 </header>
 
 <div class="search">
-  <input id="search" placeholder="Recherche médicament" onkeyup="loadMeds()" style="width:300px;">
+  <input id="search" placeholder="Recherche médicament" onkeyup="loadMeds()" style="width:250px;">
 </div>
 
 <div id="adminNav" class="admin-nav">
@@ -47,32 +48,24 @@ const SUPABASE_URL = "https://gktawbaposndfxijkxdk.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdrdGF3YmFwb3NuZGZ4aWpreGRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwNzUyNDUsImV4cCI6MjA3OTY1MTI0NX0.tY-CHuyb2zr9s6hlGkwmrdTvg920VVNghI9S45CjwKk";
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// SESSION
+// ================= SESSION =================
 const currentUser = JSON.parse(localStorage.getItem('genesi_user'));
-const session = sessionStorage.getItem('genesi_session');
+const sessionValid = sessionStorage.getItem('genesi_session');
 
-if (!currentUser || !session) {
+if (!currentUser || !sessionValid) {
   alert("Accès refusé");
   location.href = "index.html";
 }
 
-// ADMIN NAV
-if (currentUser.permission === 'admin') {
-  document.getElementById('adminNav').style.display = 'block';
+// NAV ADMIN
+if (currentUser.permission === "admin") {
+  document.getElementById("adminNav").style.display = "block";
 }
 
-// PERMISSIONS MÉDICAMENTS
-function canAccess(categorie) {
-  const p = currentUser.permission;
-  if (p === 'admin' || p === 'level3') return true;
-  if (p === 'level2' && categorie !== 'fort') return true;
-  if (p === 'level1' && categorie === 'none') return true;
-  return false;
-}
-
-// LOAD MEDS
+// ================= CHARGEMENT MEDS =================
 async function loadMeds() {
-  const q = search.value || "";
+  const q = document.getElementById("search").value || "";
+
   const { data, error } = await supabaseClient
     .from("table_genesi")
     .select("*")
@@ -80,6 +73,7 @@ async function loadMeds() {
     .order("nom");
 
   list.innerHTML = "";
+
   if (error) {
     list.innerHTML = error.message;
     return;
@@ -92,40 +86,68 @@ async function loadMeds() {
 
     list.innerHTML += `
       <div class="card">
-        <b>${m.nom}</b> (${m.classe})<br>
+        <b>${m.nom}</b> – ${m.classe}<br>
         <b>Dose :</b> ${m.dose} | <b>Voie :</b> ${m.voie}<br>
-        <b>Utilisation :</b> ${m.utilisation}<br>
-        <b>CI :</b> ${m.contre_indications}<br>
-        <b>Stock :</b> ${m.stock}<br>
+        <b>Stock :</b> ${m.stock}<br><br>
         <input type="number" id="q_${m.id}" min="1" max="${max}" value="1">
-        <button onclick="retirer(${m.id}, ${m.stock}, '${m.nom}')">Retirer</button>
-      </div>`;
+        <button onclick="retirer(${m.id}, '${m.nom}')">Retirer</button>
+      </div>
+    `;
   });
 }
 
-async function retirer(id, stock, nom) {
-  const q = parseInt(document.getElementById(`q_${id}`).value);
-  const max = Math.floor(stock * 0.2);
-  if (!q || q <= 0 || q > max) return alert("Quantité invalide");
+// ================= PERMISSIONS =================
+function canAccess(cat) {
+  const p = currentUser.permission;
+  if (p === "admin" || p === "level3") return true;
+  if (p === "level2" && cat !== "fort") return true;
+  if (p === "level1" && cat === "none") return true;
+  return false;
+}
 
-  await supabaseClient.from("table_genesi").update({ stock: stock - q }).eq("id", id);
+// ================= RETRAIT =================
+async function retirer(id, nom) {
+  const qte = parseInt(document.getElementById(`q_${id}`).value);
+  if (!qte || qte <= 0) return;
+
+  const { data, error } = await supabaseClient
+    .from("table_genesi")
+    .select("stock")
+    .eq("id", id)
+    .single();
+
+  if (error) return alert("Erreur stock");
+
+  if (qte > Math.floor(data.stock * 0.2)) {
+    return alert("Quantité trop élevée");
+  }
+
+  await supabaseClient
+    .from("table_genesi")
+    .update({ stock: data.stock - qte })
+    .eq("id", id);
+
+  // LOG CORRIGÉ
   await supabaseClient.from("logs_genesi").insert({
     username: currentUser.username,
     action: "retrait",
     medicament: nom,
-    quantite: q
+    quantite: qte,
+    created_at: new Date().toISOString()
   });
 
-  loadMeds();
+  loadMeds(); // RAFRAÎCHISSEMENT IMMÉDIAT
 }
 
+// ================= LOGOUT =================
 function logout() {
-  localStorage.clear();
-  sessionStorage.clear();
+  localStorage.removeItem("genesi_user");
+  sessionStorage.removeItem("genesi_session");
   location.href = "index.html";
 }
 
 loadMeds();
 </script>
+
 </body>
 </html>
