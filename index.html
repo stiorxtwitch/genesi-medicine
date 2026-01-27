@@ -5,6 +5,7 @@
 <title>GENESI – Connexion</title>
 <link rel="icon" type="image/png" href="https://i.imgur.com/vEMjW0C.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
 body {
   font-family: Arial;
@@ -15,6 +16,7 @@ body {
   align-items: center;
   min-height: 100vh;
 }
+
 .login-container {
   background: white;
   padding: 40px;
@@ -24,23 +26,31 @@ body {
   max-width: 400px;
   width: 100%;
 }
+
 .logo {
   width: 120px;
   margin-bottom: 20px;
 }
+
 h2 {
   color: #020617;
-  margin-bottom: 30px;
+  margin-bottom: 10px;
 }
+
+h3 {
+  margin-bottom: 30px;
+  color: #334155;
+}
+
 input {
   width: 100%;
   padding: 12px;
   margin: 10px 0;
   border: 1px solid #cbd5e1;
   border-radius: 6px;
-  box-sizing: border-box;
   font-size: 16px;
 }
+
 button {
   width: 100%;
   padding: 12px;
@@ -52,20 +62,25 @@ button {
   cursor: pointer;
   margin-top: 10px;
 }
+
 button:hover {
   background: #059669;
 }
+
 button:disabled {
   background: #94a3b8;
   cursor: not-allowed;
 }
+
 .loading {
   display: none;
   margin-top: 20px;
 }
+
 .loading img {
   width: 50px;
 }
+
 .error {
   color: #ef4444;
   margin-top: 10px;
@@ -73,105 +88,116 @@ button:disabled {
 }
 </style>
 </head>
+
 <body>
+
 <div class="login-container">
-  <img src="https://i.imgur.com/vEMjW0C.png" alt="GENESI Logo" class="logo">
+  <img src="https://i.imgur.com/vEMjW0C.png" class="logo" alt="GENESI">
   <h2>GENESI</h2>
   <h3>Connexion</h3>
-  
+
   <input type="text" id="username" placeholder="Nom d'utilisateur" autocomplete="username">
   <input type="password" id="password" placeholder="Mot de passe" autocomplete="current-password">
+
   <button id="loginBtn" onclick="login()">Se connecter</button>
-  
+
   <div class="loading" id="loading">
-    <img src="https://dhahealthcare.vn/images/loading.gif" alt="Chargement...">
+    <img src="https://dhahealthcare.vn/images/loading.gif" alt="Chargement">
     <p>Connexion en cours...</p>
   </div>
-  
+
   <div class="error" id="error"></div>
 </div>
 
 <script>
+/* ============================
+   SUPABASE CONFIG
+============================ */
 const SUPABASE_URL = "https://gktawbaposndfxijkxdk.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdrdGF3YmFwb3NuZGZ4aWpreGRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwNzUyNDUsImV4cCI6MjA3OTY1MTI0NX0.tY-CHuyb2zr9s6hlGkwmrdTvg920VVNghI9S45CjwKk";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdrdGF3YmFwb3NuZGZ4aWpreGRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwNzUyNDUsImV4cCI6MjA3OTY1MTI0NX0.tY-CHuyb2zr9s6hlGkwmrdTvg920VVNghI9S45CjwKk"; // clé anon uniquement
+
 const { createClient } = supabase;
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 
+/* ============================
+   LOGIN VIA RPC
+============================ */
 async function login() {
-  const usernameInput = document.getElementById('username').value.trim();
-  const passwordInput = document.getElementById('password').value.trim();
-  const loginBtn = document.getElementById('loginBtn');
-  
-  if (!usernameInput || !passwordInput) {
-    showError('Veuillez remplir tous les champs');
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value.trim();
+  const btn = document.getElementById('loginBtn');
+
+  if (!username || !password) {
+    showError("Veuillez remplir tous les champs");
     return;
   }
-  
-  // Désactiver le bouton et afficher le loading
-  loginBtn.disabled = true;
+
+  btn.disabled = true;
   document.getElementById('loading').style.display = 'block';
   document.getElementById('error').style.display = 'none';
-  
+
   try {
-    // Simulation délai pour le loading (2 secondes)
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
+    // petit délai UX
+    await new Promise(r => setTimeout(r, 1500));
+
     const { data, error } = await supabaseClient
-      .from('login_genesi')
-      .select('*')
-      .eq('username', usernameInput)
-      .eq('password', passwordInput);
-    
-    console.log('Réponse Supabase:', { data, error });
-    
+      .rpc('login_genesi_check', {
+        p_username: username,
+        p_password: password
+      });
+
+    console.log("RPC réponse :", { data, error });
+
     if (error) {
-      console.error('Erreur Supabase:', error);
-      showError('Erreur de connexion: ' + error.message);
-      loginBtn.disabled = false;
-      document.getElementById('loading').style.display = 'none';
+      showError("Erreur de connexion");
+      resetUI();
       return;
     }
-    
+
     if (!data || data.length === 0) {
-      showError('Identifiants incorrects');
-      loginBtn.disabled = false;
-      document.getElementById('loading').style.display = 'none';
+      showError("Identifiants incorrects");
+      resetUI();
       return;
     }
-    
-    // Stocker les infos utilisateur
+
+    // utilisateur validé
     const user = {
       id: data[0].id,
       username: data[0].username,
-      role: data[0].role
+      permission: data[0].permission
     };
-    
-    localStorage.setItem('genesi_user', JSON.stringify(user));
-    sessionStorage.setItem('genesi_session', 'active');
-    
-    // Redirection vers home
-    window.location.href = 'home.html';
-    
+
+    localStorage.setItem("genesi_user", JSON.stringify(user));
+    sessionStorage.setItem("genesi_session", "active");
+
+    window.location.href = "home.html";
+
   } catch (err) {
-    console.error('Erreur catch:', err);
-    showError('Erreur de connexion');
-    loginBtn.disabled = false;
-    document.getElementById('loading').style.display = 'none';
+    console.error(err);
+    showError("Erreur inattendue");
+    resetUI();
   }
 }
 
-function showError(message) {
-  const errorDiv = document.getElementById('error');
-  errorDiv.textContent = message;
-  errorDiv.style.display = 'block';
+/* ============================
+   UI HELPERS
+============================ */
+function resetUI() {
+  document.getElementById('loginBtn').disabled = false;
+  document.getElementById('loading').style.display = 'none';
 }
 
-// Permettre connexion avec Entrée
-document.addEventListener('keypress', function(e) {
-  if (e.key === 'Enter') {
-    login();
-  }
+function showError(msg) {
+  const e = document.getElementById('error');
+  e.textContent = msg;
+  e.style.display = 'block';
+}
+
+// Connexion avec Entrée
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') login();
 });
 </script>
+
 </body>
 </html>
