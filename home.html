@@ -39,11 +39,13 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const { createClient } = supabase;
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 
+// SÉCURITÉ : Vérifier si connecté via index.html
 let currentUser = JSON.parse(localStorage.getItem('genesi_user'));
+let sessionValid = sessionStorage.getItem('genesi_session');
 
-// Vérifier si connecté
-if (!currentUser) {
-  window.location.href = 'login.html';
+if (!currentUser || !sessionValid) {
+  alert('Accès refusé. Veuillez vous connecter.');
+  window.location.href = 'index.html';
 }
 
 // Afficher navigation admin si rôle admin
@@ -141,7 +143,8 @@ async function retirer(id, stock, nom) {
 
 function logout() {
   localStorage.removeItem('genesi_user');
-  window.location.href = 'login.html';
+  sessionStorage.removeItem('genesi_session');
+  window.location.href = 'index.html';
 }
 
 loadMeds();
