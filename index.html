@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>GENESI – Connexion</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #020617;
+  color: white;
+  text-align: center;
+  margin-top: 120px;
+}
+
+input, button {
+  padding: 10px;
+  margin: 6px;
+  width: 260px;
+  border-radius: 6px;
+  border: none;
+}
+
+button {
+  background: #2563eb;
+  color: white;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #1d4ed8;
+}
+
+#loader {
+  display: none;
+  margin-top: 20px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>GENESI – Connexion</h2>
+
+<input id="email" type="email" placeholder="Email"><br>
+<input id="password" type="password" placeholder="Mot de passe"><br>
+
+<button onclick="login()">Se connecter</button>
+
+<div id="loader">
+  <img src="https://dhahealthcare.vn/images/loading.gif" width="80">
+</div>
+
+<script>
+/* ================= CONFIG ================= */
+const SUPABASE_URL = "https://gktawbaposndfxijkxdk.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdrdGF3YmFwb3NuZGZ4aWpreGRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwNzUyNDUsImV4cCI6MjA3OTY1MTI0NX0.tY-CHuyb2zr9s6hlGkwmrdTvg920VVNghI9S45CjwKk";
+
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+/* ================= LOGIN ================= */
+async function login() {
+  loader.style.display = "block";
+
+  const userEmail = email.value.trim();
+  const userPass = password.value.trim();
+
+  if (!userEmail || !userPass) {
+    alert("Merci de remplir tous les champs");
+    loader.style.display = "none";
+    return;
+  }
+
+  const { data, error } = await supabase
+    .from("login_genesi")
+    .select("email, role")
+    .eq("email", userEmail)
+    .eq("pass", userPass)
+    .single();
+
+  if (error || !data) {
+    alert("Identifiants incorrects");
+    loader.style.display = "none";
+    return;
+  }
+
+  /* Sauvegarde session */
+  localStorage.setItem("genesi_user", JSON.stringify(data));
+
+  /* Simulation chargement */
+  setTimeout(() => {
+    window.location.href = "home.html";
+  }, 2000);
+}
+</script>
+
+</body>
+</html>
