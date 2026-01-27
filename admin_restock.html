@@ -5,44 +5,93 @@
 <title>GENESI – Admin Stock</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-body { font-family: Arial; background:#f1f5f9; }
-.card { background:white; margin:10px; padding:10px; }
+body { font-family: Arial; background:#f1f5f9; margin:0; }
+header { background:#020617; color:white; padding:15px; }
+.back-btn { background:#6366f1; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; text-decoration:none; display:inline-block; }
+.back-btn:hover { background:#4f46e5; }
+.card { background:white; margin:10px; padding:15px; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.1); }
+input { padding:6px; border:1px solid #cbd5e1; border-radius:4px; width:80px; }
+button { background:#10b981; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; margin-left:5px; }
+button:hover { background:#059669; }
 </style>
 </head>
 <body>
-
-<h2>ADMIN – Gestion Stock</h2>
-
+<header>
+  <h2>ADMIN – Gestion Stock</h2>
+  <a href="home.html" class="back-btn">← Retour</a>
+</header>
 <div id="list"></div>
-
 <script>
 const SUPABASE_URL = "https://gktawbaposndfxijkxdk.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdrdGF3YmFwb3NuZGZ4aWpreGRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwNzUyNDUsImV4cCI6MjA3OTY1MTI0NX0.tY-CHuyb2zr9s6hlGkwmrdTvg920VVNghI9S45CjwKk";
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const { createClient } = supabase;
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Vérifier si admin
+let currentUser = JSON.parse(localStorage.getItem('genesi_user'));
+if (!currentUser || currentUser.role !== 'admin') {
+  alert('Accès refusé');
+  window.location.href = 'home.html';
+}
 
 async function load() {
-  const { data } = await supabase.from("table_genesi").select("*");
+  const { data, error } = await supabaseClient.from("table_genesi").select("*").order('nom');
+  
+  if (error) {
+    list.innerHTML = `<div class="card" style="color:red;">Erreur : ${error.message}</div>`;
+    return;
+  }
+  
   list.innerHTML = "";
   data.forEach(m => {
     list.innerHTML += `
       <div class="card">
-        <b>${m.nom}</b> – Stock : ${m.stock}<br>
-        <input type="number" id="s_${m.id}">
-        <button onclick="restock(${m.id})">Ajouter</button>
+        <b>${m.nom}</b> (${m.classe})<br>
+        <b>Stock actuel :</b> ${m.stock}<br>
+        <input type="number" min="1" value="10" id="s_${m.id}">
+        <button onclick="restock(${m.id}, '${m.nom}', ${m.stock})">Ajouter au stock</button>
       </div>`;
   });
 }
 
-async function restock(id) {
-  const q = document.getElementById(`s_${id}`).value;
-  if (!q || q <= 0) return alert("Quantité invalide");
-
-  await supabase.rpc("restock_medicament", { mid: id, qte: q });
+async function restock(id, nom, stockActuel) {
+  const qteInput = document.getElementById(`s_${id}`);
+  const qte = parseInt(qteInput.value);
+  
+  if (!qte || qte <= 0) {
+    alert("Quantité invalide");
+    return;
+  }
+  
+  const nouveauStock = stockActuel + qte;
+  
+  const { error } = await supabaseClient
+    .from('table_genesi')
+    .update({ stock: nouveauStock })
+    .eq('id', id);
+  
+  if (error) {
+    alert('Erreur lors du restock');
+    console.error(error);
+    return;
+  }
+  
+  // Logger l'action
+  await supabaseClient
+    .from('logs_genesi')
+    .insert({
+      username: currentUser.username,
+      action: 'restock',
+      medicament: nom,
+      quantite: qte,
+      timestamp: new Date().toISOString()
+    });
+  
+  alert(`${qte} unité(s) ajoutée(s) au stock de ${nom}`);
   load();
 }
 
 load();
 </script>
-
 </body>
 </html>
