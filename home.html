@@ -20,15 +20,29 @@ input { padding:6px; }
 <script>
 const SUPABASE_URL = "https://gktawbaposndfxijkxdk.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdrdGF3YmFwb3NuZGZ4aWpreGRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwNzUyNDUsImV4cCI6MjA3OTY1MTI0NX0.tY-CHuyb2zr9s6hlGkwmrdTvg920VVNghI9S45CjwKk";
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const { createClient } = supabase;
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 async function loadMeds() {
   const q = search.value || "";
-  const { data } = await supabaseClient
+  const { data, error } = await supabaseClient
     .from("table_genesi")
     .select("*")
     .ilike("nom", `%${q}%`);
+  
   list.innerHTML = "";
+  
+  if (error) {
+    list.innerHTML = `<div class="card" style="color:red;">Erreur : ${error.message}</div>`;
+    console.error(error);
+    return;
+  }
+  
+  if (!data || data.length === 0) {
+    list.innerHTML = `<div class="card">Aucun médicament trouvé</div>`;
+    return;
+  }
+  
   data.forEach(m => {
     const max = Math.max(1, Math.floor(m.stock * 0.2));
     list.innerHTML += `
@@ -43,6 +57,7 @@ async function loadMeds() {
       </div>`;
   });
 }
+
 async function retirer(id, stock) {
   const q = document.getElementById(`q_${id}`).value;
   if (!q || q <= 0 || q > stock * 0.2) {
