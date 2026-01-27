@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>GENESI – Admin Stock</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+body { font-family: Arial; background:#f1f5f9; }
+.card { background:white; margin:10px; padding:10px; }
+</style>
+</head>
+<body>
+
+<h2>ADMIN – Gestion Stock</h2>
+
+<div id="list"></div>
+
+<script>
+const SUPABASE_URL = "https://gktawbaposndfxijkxdk.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdrdGF3YmFwb3NuZGZ4aWpreGRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwNzUyNDUsImV4cCI6MjA3OTY1MTI0NX0.tY-CHuyb2zr9s6hlGkwmrdTvg920VVNghI9S45CjwKk";
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+async function load() {
+  const { data } = await supabase.from("table_genesi").select("*");
+  list.innerHTML = "";
+  data.forEach(m => {
+    list.innerHTML += `
+      <div class="card">
+        <b>${m.nom}</b> – Stock : ${m.stock}<br>
+        <input type="number" id="s_${m.id}">
+        <button onclick="restock(${m.id})">Ajouter</button>
+      </div>`;
+  });
+}
+
+async function restock(id) {
+  const q = document.getElementById(`s_${id}`).value;
+  if (!q || q <= 0) return alert("Quantité invalide");
+
+  await supabase.rpc("restock_medicament", { mid: id, qte: q });
+  load();
+}
+
+load();
+</script>
+
+</body>
+</html>
