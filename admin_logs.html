@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>GENESI – Logs</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+body { font-family: Arial; background:#020617; color:white; }
+.log { border-bottom:1px solid #334155; padding:8px; }
+</style>
+</head>
+<body>
+
+<h2>ADMIN – Logs (10 derniers jours)</h2>
+<div id="logs"></div>
+
+<script>
+const SUPABASE_URL = "https://gktawbaposndfxijkxdk.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdrdGF3YmFwb3NuZGZ4aWpreGRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwNzUyNDUsImV4cCI6MjA3OTY1MTI0NX0.tY-CHuyb2zr9s6hlGkwmrdTvg920VVNghI9S45CjwKk";
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+async function loadLogs() {
+  const { data } = await supabase
+    .from("logs_genesi")
+    .select("*")
+    .gte("created_at", new Date(Date.now() - 10*24*60*60*1000).toISOString())
+    .order("created_at", { ascending:false });
+
+  logs.innerHTML = "";
+  data.forEach(l => {
+    logs.innerHTML += `
+      <div class="log">
+        ${l.created_at} — ${l.medicament} — ${l.quantite} — ${l.action}
+      </div>`;
+  });
+}
+
+loadLogs();
+</script>
+
+</body>
+</html>
