@@ -5,79 +5,80 @@
 <title>GENESI – Logs</title>
 <link rel="icon" type="image/png" href="https://i.imgur.com/vEMjW0C.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
 body { font-family: Arial; background:#020617; color:white; margin:0; padding:20px; }
-header { margin-bottom:20px; display:flex; align-items:center; justify-content:space-between; }
+header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
 .header-left { display:flex; align-items:center; gap:15px; }
-.logo { height:50px; width:auto; }
-.back-btn { background:#6366f1; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; text-decoration:none; display:inline-block; }
+.logo { height:50px; }
+.back-btn { background:#6366f1; color:white; padding:8px 15px; border-radius:5px; text-decoration:none; }
 .back-btn:hover { background:#4f46e5; }
-.log { border-bottom:1px solid #334155; padding:12px; background:#1e293b; margin-bottom:5px; border-radius:4px; }
-.log-action { color:#10b981; font-weight:bold; }
-.log-action.restock { color:#3b82f6; }
+.log { background:#1e293b; padding:12px; margin-bottom:6px; border-radius:5px; }
 .log-date { color:#94a3b8; font-size:0.9em; }
+.log-action { font-weight:bold; color:#10b981; }
+.log-action.restock { color:#3b82f6; }
 </style>
 </head>
+
 <body>
+
 <header>
   <div class="header-left">
-    <img src="https://i.imgur.com/vEMjW0C.png" alt="GENESI Logo" class="logo">
+    <img src="https://i.imgur.com/vEMjW0C.png" class="logo">
     <h2>ADMIN – Logs (10 derniers jours)</h2>
   </div>
   <a href="home.html" class="back-btn">← Retour</a>
 </header>
+
 <div id="logs"></div>
 
 <script>
 const SUPABASE_URL = "https://gktawbaposndfxijkxdk.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdrdGF3YmFwb3NuZGZ4aWpreGRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwNzUyNDUsImV4cCI6MjA3OTY1MTI0NX0.tY-CHuyb2zr9s6hlGkwmrdTvg920VVNghI9S45CjwKk";
-const { createClient } = supabase;
-const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Vérifier si admin
-let currentUser = JSON.parse(localStorage.getItem('genesi_user'));
-if (!currentUser || currentUser.role !== 'admin') {
+// VÉRIFICATION ADMIN
+const currentUser = JSON.parse(localStorage.getItem('genesi_user'));
+if (!currentUser || currentUser.permission !== 'admin') {
   alert('Accès refusé');
-  window.location.href = 'home.html';
+  location.href = 'home.html';
 }
 
 async function loadLogs() {
-  const tenDaysAgo = new Date(Date.now() - 10*24*60*60*1000).toISOString();
-  
+  const since = new Date(Date.now() - 10*24*60*60*1000).toISOString();
+
   const { data, error } = await supabaseClient
     .from("logs_genesi")
     .select("*")
-    .gte("created_at", tenDaysAgo)
-    .order("created_at", { ascending: false });
-  
+    .gte("created_at", since)
+    .order("created_at", { ascending:false });
+
   if (error) {
-    logs.innerHTML = `<div class="log" style="color:#ef4444;">Erreur : ${error.message}</div>`;
-    console.error(error);
+    logs.innerHTML = error.message;
     return;
   }
-  
-  if (!data || data.length === 0) {
-    logs.innerHTML = `<div class="log">Aucun log disponible</div>`;
-    return;
-  }
-  
+
   logs.innerHTML = "";
+  if (!data.length) {
+    logs.innerHTML = "<div class='log'>Aucun log</div>";
+    return;
+  }
+
   data.forEach(l => {
-    const date = new Date(l.created_at).toLocaleString('fr-FR');
-    const actionClass = l.action === 'restock' ? 'restock' : '';
-    
+    const d = new Date(l.created_at).toLocaleString("fr-FR");
     logs.innerHTML += `
       <div class="log">
-        <span class="log-date">${date}</span><br>
-        <b>${l.username}</b> – 
-        <span class="log-action ${actionClass}">${l.action.toUpperCase()}</span> – 
-        ${l.medicament} – 
-        <b>${l.quantite} unité(s)</b>
+        <div class="log-date">${d}</div>
+        <b>${l.username}</b> –
+        <span class="log-action ${l.action}">${l.action.toUpperCase()}</span> –
+        ${l.medicament} –
+        <b>${l.quantite}</b>
       </div>`;
   });
 }
 
 loadLogs();
 </script>
+
 </body>
 </html>
