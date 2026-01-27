@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>GENESI – Logs</title>
-<link rel="icon" type="image/png" href="https://i.imgur.com/vEMjW0C.png">
+<link rel="icon" href="https://i.imgur.com/vEMjW0C.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
@@ -17,6 +17,7 @@ header { display:flex; justify-content:space-between; align-items:center; margin
 .log-date { color:#94a3b8; font-size:0.9em; }
 .log-action { font-weight:bold; color:#10b981; }
 .log-action.restock { color:#3b82f6; }
+.log-action.retrait { color:#f59e0b; }
 </style>
 </head>
 
@@ -25,7 +26,7 @@ header { display:flex; justify-content:space-between; align-items:center; margin
 <header>
   <div class="header-left">
     <img src="https://i.imgur.com/vEMjW0C.png" class="logo">
-    <h2>ADMIN – Logs (10 derniers jours)</h2>
+    <h2>ADMIN – Logs</h2>
   </div>
   <a href="home.html" class="back-btn">← Retour</a>
 </header>
@@ -34,46 +35,44 @@ header { display:flex; justify-content:space-between; align-items:center; margin
 
 <script>
 const SUPABASE_URL = "https://gktawbaposndfxijkxdk.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdrdGF3YmFwb3NuZGZ4aWpreGRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwNzUyNDUsImV4cCI6MjA3OTY1MTI0NX0.tY-CHuyb2zr9s6hlGkwmrdTvg920VVNghI9S45CjwKk";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzb3NuZGZ4aWpreGRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwNzUyNDUsImV4cCI6MjA3OTY1MTI0NX0.tY-CHuyb2zr9s6hlGkwmrdTvg920VVNghI9S45CjwKk";
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// VÉRIFICATION ADMIN
-const currentUser = JSON.parse(localStorage.getItem('genesi_user'));
-if (!currentUser || currentUser.permission !== 'admin') {
-  alert('Accès refusé');
-  location.href = 'home.html';
+// CHECK ADMIN
+const currentUser = JSON.parse(localStorage.getItem("genesi_user"));
+if (!currentUser || currentUser.permission !== "admin") {
+  alert("Accès refusé");
+  location.href = "home.html";
 }
 
 async function loadLogs() {
-  const since = new Date(Date.now() - 10*24*60*60*1000).toISOString();
-
   const { data, error } = await supabaseClient
     .from("logs_genesi")
     .select("*")
-    .gte("created_at", since)
-    .order("created_at", { ascending:false });
+    .order("id", { ascending: false });
+
+  console.log("LOGS DATA :", data, error);
 
   if (error) {
     logs.innerHTML = error.message;
     return;
   }
 
-  logs.innerHTML = "";
-  if (!data.length) {
-    logs.innerHTML = "<div class='log'>Aucun log</div>";
+  if (!data || data.length === 0) {
+    logs.innerHTML = "<div class='log'>Aucun log trouvé</div>";
     return;
   }
 
+  logs.innerHTML = "";
   data.forEach(l => {
-    const d = new Date(l.created_at).toLocaleString("fr-FR");
     logs.innerHTML += `
       <div class="log">
-        <div class="log-date">${d}</div>
         <b>${l.username}</b> –
         <span class="log-action ${l.action}">${l.action.toUpperCase()}</span> –
         ${l.medicament} –
         <b>${l.quantite}</b>
-      </div>`;
+      </div>
+    `;
   });
 }
 
