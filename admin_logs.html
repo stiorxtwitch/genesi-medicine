@@ -40,8 +40,8 @@ async function loadLogs() {
   const { data, error } = await supabaseClient
     .from("logs_genesi")
     .select("*")
-    .gte("timestamp", tenDaysAgo)
-    .order("timestamp", { ascending: false });
+    .gte("created_at", tenDaysAgo)
+    .order("created_at", { ascending: false });
   
   if (error) {
     logs.innerHTML = `<div class="log" style="color:#ef4444;">Erreur : ${error.message}</div>`;
@@ -56,7 +56,7 @@ async function loadLogs() {
   
   logs.innerHTML = "";
   data.forEach(l => {
-    const date = new Date(l.timestamp).toLocaleString('fr-FR');
+    const date = new Date(l.created_at).toLocaleString('fr-FR');
     const actionClass = l.action === 'restock' ? 'restock' : '';
     
     logs.innerHTML += `
