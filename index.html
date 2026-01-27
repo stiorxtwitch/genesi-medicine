@@ -16,6 +16,7 @@ button:hover { background:#1d4ed8; }
 
 <body>
 <h2>GENESI – Connexion</h2>
+
 <input id="email" type="email" placeholder="Email"><br>
 <input id="password" type="password" placeholder="Mot de passe"><br>
 <button onclick="login()">Se connecter</button>
@@ -29,39 +30,39 @@ button:hover { background:#1d4ed8; }
 const SUPABASE_URL = "https://gktawbaposndfxijkxdk.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdrdGF3YmFwb3NuZGZ4aWpreGRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwNzUyNDUsImV4cCI6MjA3OTY1MTI0NX0.tY-CHuyb2zr9s6hlGkwmrdTvg920VVNghI9S45CjwKk";
 
-const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 /* ================= LOGIN ================= */
 async function login() {
-  document.getElementById("loader").style.display = "block";
+  const loader = document.getElementById("loader");
+  loader.style.display = "block";
 
   const emailInput = document.getElementById("email").value.trim();
   const passInput  = document.getElementById("password").value.trim();
 
-  if(!emailInput || !passInput) {
+  if (!emailInput || !passInput) {
     alert("Merci de remplir tous les champs");
-    document.getElementById("loader").style.display = "none";
+    loader.style.display = "none";
     return;
   }
 
-  const { data, error } = await db
-    .from("login_genesi")
-    .select("email,role")
-    .eq("email", emailInput)
-    .eq("pass", passInput)
-    .single();
+  /* ================= APPEL RPC ================= */
+  const { data, error } = await supabaseClient
+    .rpc("login_genesi_user", { p_email: emailInput, p_pass: passInput });
 
-  if(error || !data) {
-    alert("Identifiants incorrects ou accès refusé");
-    document.getElementById("loader").style.display = "none";
+  if (error || !data || data.length === 0) {
+    alert("Identifiants incorrects");
+    loader.style.display = "none";
     return;
   }
 
-  /* Stockage de la session */
-  localStorage.setItem("genesi_user", JSON.stringify(data));
+  /* ================= SAUVEGARDE SESSION ================= */
+  localStorage.setItem("genesi_user", JSON.stringify(data[0]));
 
-  /* Redirection après 2 secondes */
-  setTimeout(()=> window.location.href = "home.html", 2000);
+  /* ================= REDIRECTION AVEC CHARGEMENT ================= */
+  setTimeout(() => {
+    window.location.href = "home.html";
+  }, 2000);
 }
 </script>
 </body>
