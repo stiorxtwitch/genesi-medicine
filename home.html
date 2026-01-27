@@ -2,246 +2,132 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>GENESI – Accueil</title>
-<link rel="icon" type="image/png" href="https://i.imgur.com/vEMjW0C.png">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<title>GENESI – Home</title>
 
 <style>
-body { font-family: Arial; background:#f8fafc; margin:0; }
+body {
+  font-family: Arial, sans-serif;
+  background: #020617;
+  color: white;
+  margin: 0;
+  padding: 20px;
+}
 
 header {
-  background:#020617;
-  color:white;
-  padding:15px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
 }
 
-.header-left {
-  display:flex;
-  align-items:center;
-  gap:15px;
+h1 {
+  margin: 0;
 }
 
-.logo { height:50px; }
-
-.logout-btn {
-  background:#ef4444;
-  color:white;
-  border:none;
-  padding:8px 14px;
-  border-radius:6px;
-  cursor:pointer;
-}
-.logout-btn:hover { background:#dc2626; }
-
-.search-container {
-  background:#020617;
-  padding:10px 15px;
-}
-
-.search-container input {
-  width:300px;
-  padding:6px;
-  border-radius:5px;
-  border:1px solid #cbd5e1;
+.user-info {
+  font-size: 14px;
+  opacity: 0.8;
 }
 
 .admin-nav {
-  background:#1e293b;
-  padding:10px;
-  display:none;
+  margin-bottom: 20px;
 }
 
 .admin-nav button {
-  background:#3b82f6;
-  color:white;
-  border:none;
-  padding:8px 15px;
-  margin-right:10px;
-  border-radius:6px;
-  cursor:pointer;
-}
-.admin-nav button:hover { background:#2563eb; }
-
-.card {
-  background:white;
-  margin:10px;
-  padding:15px;
-  border-radius:8px;
-  box-shadow:0 1px 3px rgba(0,0,0,0.1);
+  margin-right: 10px;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 6px;
+  background: #10b981;
+  color: white;
+  cursor: pointer;
 }
 
-.card input {
-  width:60px;
-  margin-right:10px;
+.admin-nav button:hover {
+  background: #059669;
 }
 
-button.action {
-  background:#10b981;
-  color:white;
-  border:none;
-  padding:6px 12px;
-  border-radius:5px;
-  cursor:pointer;
+.logout {
+  background: #ef4444;
 }
-button.action:hover { background:#059669; }
+
+.logout:hover {
+  background: #dc2626;
+}
+
+.table-container {
+  background: #0f172a;
+  padding: 20px;
+  border-radius: 10px;
+}
 </style>
 </head>
 
 <body>
 
 <header>
-  <div class="header-left">
-    <img src="https://i.imgur.com/vEMjW0C.png" class="logo">
-    <h2>GENESI – Gestion Médicaments</h2>
-  </div>
-  <button class="logout-btn" onclick="logout()">Déconnexion</button>
+  <h1>GENESI</h1>
+  <div class="user-info" id="userInfo"></div>
 </header>
 
-<div class="search-container">
-  <input id="search" placeholder="Recherche médicament..." onkeyup="loadMeds()">
+<!-- NAV ADMIN (CACHÉ PAR DÉFAUT) -->
+<div id="adminNav" class="admin-nav" style="display:none;">
+  <button onclick="goRestock()">📦 Admin Restock</button>
+  <button onclick="goLogs()">📋 Admin Logs</button>
 </div>
 
-<!-- NAV ADMIN : UNIQUEMENT ADMIN -->
-<div id="adminNav" class="admin-nav">
-  <button onclick="location.href='admin_restock.html'">📦 Restock</button>
-  <button onclick="location.href='admin_logs.html'">📋 Logs</button>
+<div class="table-container">
+  <h2>Liste des médicaments</h2>
+  <p>(Les médicaments sont déjà chargés depuis la base)</p>
 </div>
 
-<div id="list"></div>
+<br>
+<button class="logout" onclick="logout()">Déconnexion</button>
 
 <script>
-/* =====================
-   SUPABASE
-===================== */
-const SUPABASE_URL = "https://gktawbaposndfxijkxdk.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdrdGF3YmFwb3NuZGZ4aWpreGRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwNzUyNDUsImV4cCI6MjA3OTY1MTI0NX0.tY-CHuyb2zr9s6hlGkwmrdTvg920VVNghI9S45CjwKk";
-
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-/* =====================
-   SESSION CHECK
-===================== */
-const currentUser = JSON.parse(localStorage.getItem('genesi_user'));
+// ===============================
+// VÉRIFICATION SESSION
+// ===============================
+const user = JSON.parse(localStorage.getItem('genesi_user'));
 const sessionValid = sessionStorage.getItem('genesi_session');
 
-if (!currentUser || !sessionValid) {
-  alert("Accès refusé");
-  location.href = "index.html";
+if (!user || !sessionValid) {
+  alert('Accès refusé. Veuillez vous connecter.');
+  window.location.href = 'index.html';
 }
 
-// Affichage admin UNIQUEMENT
-if (currentUser.permission === "admin") {
-  document.getElementById("adminNav").style.display = "block";
+// ===============================
+// AFFICHAGE UTILISATEUR
+// ===============================
+document.getElementById('userInfo').innerText =
+  `Utilisateur : ${user.username} | Permission : ${user.permission}`;
+
+// ===============================
+// NAV ADMIN
+// ===============================
+if (user.permission === 'admin') {
+  document.getElementById('adminNav').style.display = 'block';
 }
 
-/* =====================
-   PERMISSIONS MÉDICAMENTS
-===================== */
-function canAccessMed(categorie) {
-  const p = currentUser.permission;
-
-  if (p === "admin" || p === "level3") return true;
-  if (p === "level2" && categorie !== "fort") return true;
-  if (p === "level1" && categorie === "none") return true;
-
-  return false;
+// ===============================
+// NAVIGATION ADMIN
+// ===============================
+function goRestock() {
+  window.location.href = 'admin_restock.html';
 }
 
-/* =====================
-   LOAD MEDS
-===================== */
-async function loadMeds() {
-  const q = document.getElementById("search").value || "";
-
-  const { data, error } = await supabaseClient
-    .from("table_genesi")
-    .select("*")
-    .ilike("nom", `%${q}%`)
-    .order("nom");
-
-  const list = document.getElementById("list");
-  list.innerHTML = "";
-
-  if (error) {
-    list.innerHTML = `<div class="card" style="color:red;">Erreur chargement</div>`;
-    console.error(error);
-    return;
-  }
-
-  if (!data || data.length === 0) {
-    list.innerHTML = `<div class="card">Aucun médicament trouvé</div>`;
-    return;
-  }
-
-  data.forEach(m => {
-    if (!canAccessMed(m.categorie_opioide)) return;
-
-    const max = Math.max(1, Math.floor(m.stock * 0.2));
-
-    list.innerHTML += `
-      <div class="card">
-        <b>${m.nom}</b> – ${m.classe}<br>
-        <b>Dose :</b> ${m.dose} | <b>Voie :</b> ${m.voie}<br>
-        <b>Utilisation :</b> ${m.utilisation}<br>
-        <b>Contre-indications :</b> ${m.contre_indications}<br>
-        <b>Stock :</b> ${m.stock}<br><br>
-
-        <input type="number" min="1" max="${max}" value="1" id="q_${m.id}">
-        <button class="action" onclick="retirer(${m.id}, ${m.stock}, '${m.nom}')">
-          Retirer
-        </button>
-      </div>
-    `;
-  });
+function goLogs() {
+  window.location.href = 'admin_logs.html';
 }
 
-/* =====================
-   RETIRER
-===================== */
-async function retirer(id, stock, nom) {
-  const qte = parseInt(document.getElementById(`q_${id}`).value);
-  const max = Math.floor(stock * 0.2);
-
-  if (!qte || qte < 1 || qte > max) {
-    alert(`Quantité invalide (max ${max})`);
-    return;
-  }
-
-  const { error } = await supabaseClient
-    .from("table_genesi")
-    .update({ stock: stock - qte })
-    .eq("id", id);
-
-  if (error) {
-    alert("Erreur retrait");
-    console.error(error);
-    return;
-  }
-
-  await supabaseClient.from("logs_genesi").insert({
-    username: currentUser.username,
-    action: "retrait",
-    medicament: nom,
-    quantite: qte
-  });
-
-  alert(`${qte} unité(s) retirée(s)`);
-  loadMeds();
-}
-
-/* =====================
-   LOGOUT
-===================== */
+// ===============================
+// LOGOUT
+// ===============================
 function logout() {
-  localStorage.removeItem("genesi_user");
-  sessionStorage.removeItem("genesi_session");
-  location.href = "index.html";
+  localStorage.removeItem('genesi_user');
+  sessionStorage.removeItem('genesi_session');
+  window.location.href = 'index.html';
 }
-
-loadMeds();
 </script>
 
 </body>
