@@ -5,23 +5,51 @@
 <title>GENESI – Accueil</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-body { font-family: Arial; background:#f8fafc; }
+body { font-family: Arial; background:#f8fafc; margin:0; }
 header { background:#020617; color:white; padding:15px; }
-.card { background:white; padding:10px; margin:10px; border-radius:8px; }
-input { padding:6px; }
+.admin-nav { background:#1e293b; padding:10px; display:none; }
+.admin-nav button { background:#3b82f6; color:white; border:none; padding:8px 15px; margin:5px; border-radius:5px; cursor:pointer; }
+.admin-nav button:hover { background:#2563eb; }
+.card { background:white; padding:10px; margin:10px; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.1); }
+input { padding:6px; border:1px solid #cbd5e1; border-radius:4px; }
+button { background:#10b981; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; }
+button:hover { background:#059669; }
+.logout-btn { background:#ef4444; float:right; }
+.logout-btn:hover { background:#dc2626; }
 </style>
 </head>
 <body>
 <header>
 <h2>GENESI – Gestion Médicaments</h2>
-<input id="search" placeholder="Recherche médicament" onkeyup="loadMeds()">
+<button class="logout-btn" onclick="logout()">Déconnexion</button>
+<div style="clear:both;"></div>
+<input id="search" placeholder="Recherche médicament" onkeyup="loadMeds()" style="width:300px; margin-top:10px;">
 </header>
+
+<div id="adminNav" class="admin-nav">
+  <button onclick="window.location.href='admin_restock.html'">📦 Restock</button>
+  <button onclick="window.location.href='admin_logs.html'">📋 Logs</button>
+</div>
+
 <div id="list"></div>
+
 <script>
 const SUPABASE_URL = "https://gktawbaposndfxijkxdk.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdrdGF3YmFwb3NuZGZ4aWpreGRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwNzUyNDUsImV4cCI6MjA3OTY1MTI0NX0.tY-CHuyb2zr9s6hlGkwmrdTvg920VVNghI9S45CjwKk";
 const { createClient } = supabase;
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let currentUser = JSON.parse(localStorage.getItem('genesi_user'));
+
+// Vérifier si connecté
+if (!currentUser) {
+  window.location.href = 'login.html';
+}
+
+// Afficher navigation admin si rôle admin
+if (currentUser.role === 'admin') {
+  document.getElementById('adminNav').style.display = 'block';
+}
 
 async function loadMeds() {
   const q = search.value || "";
@@ -44,29 +72,78 @@ async function loadMeds() {
   }
   
   data.forEach(m => {
+    // Vérifier permissions selon rôle
+    if (!canAccessMed(m.categorie_opioide)) {
+      return; // Skip ce médicament
+    }
+    
     const max = Math.max(1, Math.floor(m.stock * 0.2));
     list.innerHTML += `
       <div class="card">
         <b>${m.nom}</b> – ${m.classe}<br>
-        Dose : ${m.dose} | Voie : ${m.voie}<br>
-        Utilisation : ${m.utilisation}<br>
-        Contre-indications : ${m.contre_indications}<br>
+        <b>Dose :</b> ${m.dose} | <b>Voie :</b> ${m.voie}<br>
+        <b>Utilisation :</b> ${m.utilisation}<br>
+        <b>Contre-indications :</b> ${m.contre_indications}<br>
         <b>Stock :</b> ${m.stock}<br>
-        <input type="number" min="1" max="${max}" id="q_${m.id}">
-        <button onclick="retirer(${m.id}, ${m.stock})">Retirer</button>
+        <input type="number" min="1" max="${max}" value="1" id="q_${m.id}" style="width:60px;">
+        <button onclick="retirer(${m.id}, ${m.stock}, '${m.nom}')">Retirer</button>
       </div>`;
   });
 }
 
-async function retirer(id, stock) {
-  const q = document.getElementById(`q_${id}`).value;
-  if (!q || q <= 0 || q > stock * 0.2) {
-    alert("Quantité invalide");
+function canAccessMed(categorieOpioide) {
+  const role = currentUser.role;
+  
+  if (role === 'admin' || role === 'level3') return true;
+  if (role === 'level2' && categorieOpioide !== 'fort') return true;
+  if (role === 'level1' && categorieOpioide === 'none') return true;
+  
+  return false;
+}
+
+async function retirer(id, stock, nom) {
+  const qteInput = document.getElementById(`q_${id}`);
+  const qte = parseInt(qteInput.value);
+  const maxAllowed = Math.floor(stock * 0.2);
+  
+  if (!qte || qte <= 0 || qte > maxAllowed) {
+    alert(`Quantité invalide. Maximum autorisé : ${maxAllowed}`);
     return;
   }
-  await supabaseClient.rpc("retirer_medicament", { mid: id, qte: q });
+  
+  const nouveauStock = stock - qte;
+  
+  const { error } = await supabaseClient
+    .from('table_genesi')
+    .update({ stock: nouveauStock })
+    .eq('id', id);
+  
+  if (error) {
+    alert('Erreur lors du retrait');
+    console.error(error);
+    return;
+  }
+  
+  // Logger l'action
+  await supabaseClient
+    .from('logs_genesi')
+    .insert({
+      username: currentUser.username,
+      action: 'retrait',
+      medicament: nom,
+      quantite: qte,
+      timestamp: new Date().toISOString()
+    });
+  
+  alert(`${qte} unité(s) de ${nom} retirée(s)`);
   loadMeds();
 }
+
+function logout() {
+  localStorage.removeItem('genesi_user');
+  window.location.href = 'login.html';
+}
+
 loadMeds();
 </script>
 </body>
