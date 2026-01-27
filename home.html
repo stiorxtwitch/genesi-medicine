@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>GENESI – Accueil</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+body { font-family: Arial; background:#f8fafc; }
+header { background:#020617; color:white; padding:15px; }
+.card { background:white; padding:10px; margin:10px; border-radius:8px; }
+input { padding:6px; }
+</style>
+</head>
+<body>
+
+<header>
+<h2>GENESI – Gestion Médicaments</h2>
+<input id="search" placeholder="Recherche médicament" onkeyup="loadMeds()">
+</header>
+
+<div id="list"></div>
+
+<script>
+const SUPABASE_URL = "https://gktawbaposndfxijkxdk.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdrdGF3YmFwb3NuZGZ4aWpreGRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwNzUyNDUsImV4cCI6MjA3OTY1MTI0NX0.tY-CHuyb2zr9s6hlGkwmrdTvg920VVNghI9S45CjwKk";
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+async function loadMeds() {
+  const q = search.value || "";
+  const { data } = await supabase
+    .from("table_genesi")
+    .select("*")
+    .ilike("nom", `%${q}%`);
+
+  list.innerHTML = "";
+  data.forEach(m => {
+    const max = Math.max(1, Math.floor(m.stock * 0.2));
+    list.innerHTML += `
+      <div class="card">
+        <b>${m.nom}</b> – ${m.classe}<br>
+        Dose : ${m.dose} | Voie : ${m.voie}<br>
+        Utilisation : ${m.utilisation}<br>
+        Contre-indications : ${m.contre_indications}<br>
+        <b>Stock :</b> ${m.stock}<br>
+        <input type="number" min="1" max="${max}" id="q_${m.id}">
+        <button onclick="retirer(${m.id}, ${m.stock})">Retirer</button>
+      </div>`;
+  });
+}
+
+async function retirer(id, stock) {
+  const q = document.getElementById(`q_${id}`).value;
+  if (!q || q <= 0 || q > stock * 0.2) {
+    alert("Quantité invalide");
+    return;
+  }
+
+  await supabase.rpc("retirer_medicament", { mid: id, qte: q });
+  loadMeds();
+}
+
+loadMeds();
+</script>
+
+</body>
+</html>
