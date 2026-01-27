@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>GENESI – Connexion</title>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
@@ -55,10 +54,9 @@ button:hover {
 
 <script>
 /* ================= CONFIG ================= */
-const SUPABASE_URL = "https://gktawbaposndfxijkxdk.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdrdGF3YmFwb3NuZGZ4aWpreGRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwNzUyNDUsImV4cCI6MjA3OTY1MTI0NX0.tY-CHuyb2zr9s6hlGkwmrdTvg920VVNghI9S45CjwKk";
+const SUPABASE_URL = "https://gktawbaposndfxijkxdk.supabase.co";     // Remplace avec ton URL Supabase
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdrdGF3YmFwb3NuZGZ4aWpreGRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwNzUyNDUsImV4cCI6MjA3OTY1MTI0NX0.tY-CHuyb2zr9s6hlGkwmrdTvg920VVNghI9S45CjwKk"; // Remplace avec ta clé Anon
 
-/* ⚠️ IMPORTANT : on ne s'appelle PAS supabase */
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 /* ================= LOGIN ================= */
@@ -66,7 +64,7 @@ async function login() {
   document.getElementById("loader").style.display = "block";
 
   const userEmail = document.getElementById("email").value.trim();
-  const userPass = document.getElementById("password").value.trim();
+  const userPass  = document.getElementById("password").value.trim();
 
   if (!userEmail || !userPass) {
     alert("Merci de remplir tous les champs");
@@ -74,6 +72,7 @@ async function login() {
     return;
   }
 
+  /* Appel de la table login_genesi (policy RLS using true pour test) */
   const { data, error } = await db
     .from("login_genesi")
     .select("email, role")
@@ -90,7 +89,7 @@ async function login() {
   /* Sauvegarde session */
   localStorage.setItem("genesi_user", JSON.stringify(data));
 
-  /* Effet chargement */
+  /* Simulation de chargement */
   setTimeout(() => {
     window.location.href = "home.html";
   }, 2000);
