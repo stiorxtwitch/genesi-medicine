@@ -3,147 +3,188 @@
 <head>
 <meta charset="UTF-8">
 <title>GENESI – Connexion</title>
-<link rel="icon" type="image/png" href="https://i.imgur.com/vEMjW0C.png">
-
+<link rel="icon" href="https://i.imgur.com/vEMjW0C.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-body {
-  font-family: Arial;
-  background: linear-gradient(135deg, #020617 0%, #1e293b 100%);
-  margin: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
+
+body{
+background:#020617;
+font-family:Arial;
+margin:0;
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+color:white;
 }
 
-.login-container {
-  background: white;
-  padding: 40px;
-  border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-  text-align: center;
-  max-width: 400px;
-  width: 100%;
+/* CARD LOGIN */
+
+.login{
+background:#020617;
+border:1px solid #1e293b;
+padding:40px;
+border-radius:14px;
+width:360px;
+text-align:center;
+animation:fade .5s ease;
 }
 
-.logo {
-  width: 120px;
-  margin-bottom: 20px;
+.logo{
+width:110px;
+margin-bottom:20px;
 }
 
-input {
-  width: 100%;
-  padding: 12px;
-  margin: 10px 0;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  font-size: 16px;
+input{
+width:100%;
+padding:12px;
+margin:10px 0;
+border:none;
+border-radius:10px;
+background:#0f172a;
+color:white;
 }
 
-button {
-  width: 100%;
-  padding: 12px;
-  background: #10b981;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 16px;
-  cursor: pointer;
+button{
+width:100%;
+padding:12px;
+border:none;
+border-radius:10px;
+background:#10b981;
+color:white;
+cursor:pointer;
+transition:.2s;
 }
 
-button:disabled {
-  background: #94a3b8;
+button:hover{
+background:#059669;
 }
 
-.error {
-  color: #ef4444;
-  margin-top: 10px;
-  display: none;
+.error{
+color:#ef4444;
+display:none;
 }
+
+@keyframes fade{
+from{opacity:0;transform:translateY(10px)}
+}
+
+/* OVERLAY SCAN */
+
+.scanOverlay{
+position:fixed;
+inset:0;
+background:#000c;
+display:none;
+justify-content:center;
+align-items:center;
+flex-direction:column;
+z-index:999;
+}
+
+.machine{
+width:260px;
+margin-bottom:20px;
+}
+
+.cardImg{
+width:160px;
+position:absolute;
+pointer-events:none;
+transition:.05s;
+}
+
+.success{
+color:#22c55e;
+font-size:22px;
+margin-top:20px;
+display:none;
+}
+
 </style>
 </head>
 
 <body>
 
-<div class="login-container">
-  <img src="https://i.imgur.com/vEMjW0C.png" class="logo">
-  <h2>GENESI</h2>
+<div class="login">
+<img src="https://i.imgur.com/vEMjW0C.png" class="logo">
+<h2>GENESI</h2>
 
-  <input id="username" type="text" placeholder="Nom d'utilisateur">
-  <input id="password" type="password" placeholder="Mot de passe">
+<input id="username" placeholder="Utilisateur">
+<input id="password" type="password" placeholder="Mot de passe">
 
-  <button id="loginBtn" onclick="login()">Se connecter</button>
+<button onclick="login()">Connexion</button>
+<div id="error" class="error"></div>
+</div>
 
-  <div id="error" class="error"></div>
+<!-- SCAN -->
+<div id="scanOverlay" class="scanOverlay">
+<img src="https://i.imgur.com/WHCRXGk.png" class="machine">
+<img src="https://i.imgur.com/CzPOlwn.png" id="card" class="cardImg">
+<div id="scanOK" class="success">✔ Carte validée</div>
 </div>
 
 <script>
-/* =============================
-   SUPABASE CONFIG
-============================= */
-const SUPABASE_URL = "https://gktawbaposndfxijkxdk.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdrdGF3YmFwb3NuZGZ4aWpreGRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwNzUyNDUsImV4cCI6MjA3OTY1MTI0NX0.tY-CHuyb2zr9s6hlGkwmrdTvg920VVNghI9S45CjwKk";
 
-const supabaseClient = supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
-);
+const SUPABASE_URL="https://gktawbaposndfxijkxdk.supabase.co";
+const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdrdGF3YmFwb3NuZGZ4aWpreGRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwNzUyNDUsImV4cCI6MjA3OTY1MTI0NX0.tY-CHuyb2zr9s6hlGkwmrdTvg920VVNghI9S45CjwKk";
 
-/* =============================
-   LOGIN RPC SIMPLE
-============================= */
-async function login() {
-  const username = document.getElementById("username").value;
-  const password = document.getElementById("password").value;
-  const errorDiv = document.getElementById("error");
+const supabaseClient=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
-  errorDiv.style.display = "none";
+/* scan carte */
+function startScan(callback){
 
-  if (!username || !password) {
-    showError("Champs manquants");
-    return;
-  }
+const overlay=document.getElementById("scanOverlay");
+const card=document.getElementById("card");
+const ok=document.getElementById("scanOK");
 
-  const { data, error } = await supabaseClient.rpc(
-    "login_genesi_check",
-    {
-      p_username: username,
-      p_password: password
-    }
-  );
+overlay.style.display="flex";
+ok.style.display="none";
 
-  console.log("RPC RESULT:", data, error);
+document.onmousemove=e=>{
+card.style.left=e.clientX-80+"px";
+card.style.top=e.clientY-50+"px";
+};
 
-  if (error) {
-    showError("Erreur Supabase");
-    return;
-  }
+overlay.onclick=()=>{
+ok.style.display="block";
+setTimeout(()=>{
+overlay.style.display="none";
+callback();
+},3000);
+};
 
-  if (!data || data.length === 0) {
-    showError("Identifiants incorrects");
-    return;
-  }
-
-  // succès
-  localStorage.setItem("genesi_user", JSON.stringify(data[0]));
-  sessionStorage.setItem("genesi_session", "active");
-
-  window.location.href = "home.html";
 }
 
-function showError(msg) {
-  const errorDiv = document.getElementById("error");
-  errorDiv.innerText = msg;
-  errorDiv.style.display = "block";
-}
+/* LOGIN */
 
-// Entrée clavier
-document.addEventListener("keydown", e => {
-  if (e.key === "Enter") login();
+async function login(){
+
+const username=usernameInput.value;
+const password=passwordInput.value;
+
+const {data}=await supabaseClient.rpc("login_genesi_check",{
+p_username:username,
+p_password:password
 });
-</script>
 
+if(!data || data.length===0){
+error.innerText="Identifiants incorrects";
+error.style.display="block";
+return;
+}
+
+localStorage.setItem("genesi_user", JSON.stringify(data[0]));
+sessionStorage.setItem("genesi_session","active");
+
+/* scan obligatoire */
+startScan(()=>{
+location.href="home.html";
+});
+
+}
+
+</script>
 </body>
 </html>
