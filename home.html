@@ -3,208 +3,378 @@
 <head>
 <meta charset="UTF-8">
 <title>GENESI – Home</title>
+
 <link rel="icon" href="https://i.imgur.com/vEMjW0C.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-body{font-family:Arial;background:#020617;color:white;margin:0;}
-header{display:flex;justify-content:space-between;align-items:center;padding:15px 25px;background:#020617;border-bottom:1px solid #1e293b;}
-.logo{height:42px}
-.logout{background:#ef4444;border:none;padding:8px 15px;border-radius:8px;cursor:pointer;transition:.2s;}
-.logout:hover{background:#dc2626;}
-.search{padding:20px;text-align:center;}
-.search input{width:300px;padding:12px;border-radius:10px;border:none;background:#0f172a;color:white;outline:none;transition:.2s;}
-.search input:focus{box-shadow:0 0 0 2px #3b82f6;}
-#list{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:15px;padding:10px;}
-.card{background:#1e293b;border-radius:14px;padding:15px;transition:.25s;display:flex;flex-direction:column;align-items:center;animation:fade .35s ease;}
-.card:hover{transform:translateY(-4px);border:1px solid #3b82f6;}
-.card img{width:80px;height:80px;margin-bottom:10px;}
-button{background:#10b981;border:none;padding:7px 14px;border-radius:8px;color:white;cursor:pointer;transition:.2s;margin-top:8px;}
-button:hover{background:#059669;}
-input[type=number]{width:70px;padding:7px;border:none;border-radius:8px;background:#0f172a;color:white;margin-right:8px;}
-@keyframes fade{from{opacity:0;transform:translateY(12px)}to{opacity:1}}
-.scanOverlay{position:fixed;inset:0;background:#000c;display:none;justify-content:center;align-items:center;flex-direction:column;z-index:999;}
-.machine{width:260px;margin-bottom:20px;}
-.cardImg{width:160px;position:absolute;pointer-events:none;transition:.05s;}
-.success{color:#22c55e;font-size:22px;margin-top:20px;display:none;}
 
-/* KEYPAD */
-.keypadOverlay{position:fixed;inset:0;background:#000d;display:none;justify-content:center;align-items:center;flex-direction:column;z-index:1000;}
-.keypad{background:#1e293b;padding:20px;border-radius:12px;display:grid;grid-template-columns:repeat(3,60px);gap:10px;}
-.keypad button{width:60px;height:60px;font-size:20px;border-radius:10px;background:#3b82f6;color:white;transition:.2s;}
-.keypad button:hover{background:#2563eb;}
-.keypadDisplay{grid-column:span 3;background:#0f172a;color:white;padding:8px;border-radius:8px;text-align:center;margin-bottom:10px;font-size:18px;}
+body{
+font-family:Arial;
+background:#020617;
+color:white;
+margin:0;
+}
+
+/* HEADER */
+
+header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:15px 25px;
+background:#020617;
+border-bottom:1px solid #1e293b;
+}
+
+.logo{
+height:42px;
+}
+
+.logout{
+background:#ef4444;
+border:none;
+padding:8px 15px;
+border-radius:8px;
+cursor:pointer;
+transition:.2s;
+}
+
+.logout:hover{
+background:#dc2626;
+}
+
+/* ADMIN BAR */
+
+.admin-bar{
+display:none;
+gap:10px;
+padding:12px;
+background:#020617;
+border-bottom:1px solid #1e293b;
+justify-content:center;
+}
+
+.admin-bar button{
+background:#3b82f6;
+border:none;
+padding:8px 14px;
+border-radius:8px;
+cursor:pointer;
+transition:.2s;
+}
+
+.admin-bar button:hover{
+background:#2563eb;
+}
+
+/* SEARCH */
+
+.search{
+padding:20px;
+text-align:center;
+}
+
+.search input{
+width:320px;
+padding:12px;
+border-radius:10px;
+border:none;
+background:#0f172a;
+color:white;
+outline:none;
+}
+
+/* GRID */
+
+#list{
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+gap:15px;
+padding:15px;
+}
+
+/* CARD */
+
+.card{
+background:#1e293b;
+border-radius:14px;
+padding:15px;
+text-align:center;
+transition:.25s;
+animation:fade .35s ease;
+}
+
+.card:hover{
+transform:translateY(-5px);
+border:1px solid #3b82f6;
+}
+
+.card img{
+width:90px;
+height:90px;
+object-fit:contain;
+margin-bottom:10px;
+}
+
+input[type=number]{
+width:70px;
+padding:7px;
+border:none;
+border-radius:8px;
+background:#0f172a;
+color:white;
+}
+
+button{
+background:#10b981;
+border:none;
+padding:7px 14px;
+border-radius:8px;
+color:white;
+cursor:pointer;
+transition:.2s;
+margin-top:8px;
+}
+
+button:hover{
+background:#059669;
+}
+
+/* RCP */
+
+.rcp{
+background:#f59e0b;
+}
+
+.rcp:hover{
+background:#d97706;
+}
+
+@keyframes fade{
+from{opacity:0; transform:translateY(15px)}
+to{opacity:1;}
+}
+
 </style>
 </head>
+
 <body>
 
 <header>
-  <div style="display:flex;align-items:center;gap:10px;">
-    <img src="https://i.imgur.com/vEMjW0C.png" class="logo">
-    <b>GENESI</b>
-  </div>
-  <button class="logout" onclick="logout()">Déconnexion</button>
+<div style="display:flex;align-items:center;gap:10px;">
+<img src="https://i.imgur.com/vEMjW0C.png" class="logo">
+<b>GENESI</b>
+</div>
+
+<button class="logout" onclick="logout()">Déconnexion</button>
 </header>
 
+
+<!-- ADMIN NAV -->
+<div id="adminBar" class="admin-bar">
+<button onclick="location.href='admin_restock.html'">📦 Restock</button>
+<button onclick="location.href='admin_logs.html'">📋 Logs</button>
+</div>
+
+
 <div class="search">
-  <input id="search" placeholder="Recherche médicament..." onkeyup="loadMeds()">
+<input id="search" placeholder="Recherche médicament..." onkeyup="loadMeds()">
 </div>
 
 <div id="list"></div>
 
-<!-- SCAN -->
-<div id="scanOverlay" class="scanOverlay">
-  <img src="https://i.imgur.com/WHCRXGk.png" class="machine">
-  <img src="https://i.imgur.com/CzPOlwn.png" class="cardImg">
-  <div class="success">✔ Carte validée</div>
-</div>
-
-<!-- KEYPAD -->
-<div id="keypadOverlay" class="keypadOverlay">
-  <div class="keypadDisplay" id="keypadDisplay"></div>
-  <div class="keypad">
-    <button onclick="enterKey('1')">1</button>
-    <button onclick="enterKey('2')">2</button>
-    <button onclick="enterKey('3')">3</button>
-    <button onclick="enterKey('4')">4</button>
-    <button onclick="enterKey('5')">5</button>
-    <button onclick="enterKey('6')">6</button>
-    <button onclick="enterKey('7')">7</button>
-    <button onclick="enterKey('8')">8</button>
-    <button onclick="enterKey('9')">9</button>
-    <button onclick="clearKey()">C</button>
-    <button onclick="enterKey('0')">0</button>
-    <button onclick="submitPin()">✔</button>
-  </div>
-</div>
-
 <script>
+
+/* =============================
+CONFIG SUPABASE
+============================= */
+
 const SUPABASE_URL="https://gktawbaposndfxijkxdk.supabase.co";
 const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdrdGF3YmFwb3NuZGZ4aWpreGRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwNzUyNDUsImV4cCI6MjA3OTY1MTI0NX0.tY-CHuyb2zr9s6hlGkwmrdTvg920VVNghI9S45CjwKk";
+
 const supabaseClient=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
-const currentUser=JSON.parse(localStorage.getItem("genesi_user"));
-if(!currentUser || !sessionStorage.getItem("genesi_session")){alert("Accès refusé"); location.href="index.html";}
 
-const medicImages = {
-"Accès Intra-Osseux":"https://i.imgur.com/hX0th8r.png",
-"Accès Intra-Veineux":"https://i.imgur.com/QD16s9F.png",
-"Attelle de bras (type SAM Splint ou vacuum)":"https://i.imgur.com/JShkaBI.png",
-"Attelle de jambe (type SAM Splint ou vacuum)":"https://i.imgur.com/4sNNiKE.png",
-"Bandage Élastique (type Coflex / ACE)":"https://i.imgur.com/807O9c4.png",
-"Civière":"https://i.imgur.com/YBcc7se.png",
-"Compresse gauze":"https://i.imgur.com/hxH2n1S.png",
-"DEA":"https://i.imgur.com/MJepVAR.png",
-"ECG (Electro Cardiogramme)":"https://i.imgur.com/HqVgcID.png",
-"Épinéphrine (Adrénaline)":"https://i.imgur.com/1BPatJt.png",
-"Fentanyl":"https://i.imgur.com/gCSPBmd.jpeg",
-"Garrot (type CAT ou SOFTT)":"https://i.imgur.com/4LKNHAZ.png",
-"Individual First Aid Kit":"https://i.imgur.com/DYPAG5t.png",
-"Kit de chirugicaux":"https://i.imgur.com/8bbKpaA.png",
-"Kit Réanimation d'urgence":"https://i.imgur.com/RhylSa1.png",
-"Minerve":"https://i.imgur.com/hemZJVv.png",
+/* =============================
+SESSION
+============================= */
+
+const currentUser=JSON.parse(localStorage.getItem("genesi_user"));
+
+if(!currentUser || !sessionStorage.getItem("genesi_session")){
+alert("Accès refusé");
+location.href="index.html";
+}
+
+
+/* =============================
+ADMIN NAV
+============================= */
+
+if(currentUser.permission === "admin"){
+document.getElementById("adminBar").style.display="flex";
+}
+
+
+/* =============================
+IMAGES
+============================= */
+
+const medicImages={
+"Epinephrine":"https://i.imgur.com/1BPatJt.png",
 "Morphine":"https://i.imgur.com/Doe8vqs.png",
-"Pansement de terrain":"https://i.imgur.com/GIwqC8f.png",
-"Pansement Hémostatique (type QuikClot, Celox, ChitoGauze)":"https://i.imgur.com/3QbaL2X.png",
-"Poche de saline":"https://i.imgur.com/w24VDhj.png",
-"Poche de sang G":"https://i.imgur.com/vMGcCXq.png",
-"Poche de sang M":"https://i.imgur.com/vMGcCXq.png",
-"Poche de sang P":"https://i.imgur.com/vMGcCXq.png",
+"Fentanyl":"https://i.imgur.com/gCSPBmd.jpeg",
 "Propofol":"https://i.imgur.com/ex6iI6G.png"
 };
 
-// LOG interne
-function addLog(action,medicament,quantite){
-  let logs=JSON.parse(localStorage.getItem("genesi_logs"))||[];
-  logs.push({username:currentUser.username,action,medicament,quantite,date:new Date().toISOString()});
-  localStorage.setItem("genesi_logs",JSON.stringify(logs));
-}
+
+/* =============================
+RCP LINKS
+============================= */
+
+const rcpLinks={
+"epinephrine":"https://app.fagg-afmps.be/pharma-status/api/files/62bc79571e5c015ab3fdf6e0",
+"morphine":"https://app.fagg-afmps.be/pharma-status/api/files/62bc5fab1e5c015ab3ce1c94",
+"fentanyl":"https://app.fagg-afmps.be/pharma-status/api/files/62bc83151e5c015ab30be808",
+"propofol":"https://app.fagg-afmps.be/pharma-status/api/files/62bc677e1e5c015ab3dec755"
+};
+
+
+/* =============================
+PERMISSIONS
+============================= */
 
 function canAccess(cat,nom){
-  const p=currentUser.permission;
-  const n=nom.toLowerCase();
-  if(p==="admin"||p==="level3") return true;
-  if(p==="level2"&&cat!=="fort") return true;
-  if(p==="level1"){
-    if(n.includes("morphine")||n.includes("fentanyl")||n.includes("propofol")||n.includes("epinephrine")||n.includes("epinéphrine")) return false;
-    return true;
-  }
-  return false;
+
+const p=currentUser.permission;
+const n=nom.toLowerCase();
+
+if(p==="admin" || p==="level3") return true;
+
+if(p==="level2" && cat!=="fort") return true;
+
+if(p==="level1"){
+
+if(
+n.includes("morphine") ||
+n.includes("fentanyl") ||
+n.includes("propofol") ||
+n.includes("epinephrine") ||
+n.includes("epinéphrine")
+){
+return false;
 }
 
-/* SCAN carte */
-function scanCard(callback,requirePin=false){
-  const overlay=document.getElementById("scanOverlay");
-  overlay.style.display="flex";
-  const card=overlay.querySelector(".cardImg");
-  const ok=overlay.querySelector(".success");
-  ok.style.display="none";
-  document.onmousemove=e=>{
-    card.style.left=e.clientX-80+"px";
-    card.style.top=e.clientY-50+"px";
-  };
-  overlay.onclick=()=>{
-    ok.style.display="block";
-    setTimeout(()=>{
-      overlay.style.display="none";
-      if(requirePin){showPin(callback);}else{callback();}
-    },1500);
-  };
+return true;
 }
 
-/* KEYPAD PIN */
-let pinValue="";
-let pinCallback=null;
-function showPin(callback){pinValue="";pinCallback=callback; document.getElementById("keypadDisplay").innerText=""; document.getElementById("keypadOverlay").style.display="flex";}
-function enterKey(n){pinValue+=n; document.getElementById("keypadDisplay").innerText=pinValue;}
-function clearKey(){pinValue=""; document.getElementById("keypadDisplay").innerText="";}
-function submitPin(){if(pinValue==="3001"){document.getElementById("keypadOverlay").style.display="none"; pinCallback();} else{alert("Code incorrect");pinValue=""; document.getElementById("keypadDisplay").innerText="";}}
+return false;
+}
 
-/* LOAD MEDS */
+
+/* =============================
+LOAD MEDS
+============================= */
+
 async function loadMeds(){
-  const list=document.getElementById("list");
-  list.innerHTML="";
-  const q=document.getElementById("search").value||"";
-  const {data}=await supabaseClient.from("table_genesi").select("*").ilike("nom",`%${q}%`).order("nom");
-  data.forEach(m=>{
-    if(!canAccess(m.categorie_opioide,m.nom)) return;
-    const max=Math.max(1,Math.floor(m.stock*0.2));
-    const img=medicImages[m.nom]||"https://i.imgur.com/hX0th8r.png";
-    list.innerHTML+=`<div class="card">
-      <img src="${img}" alt="${m.nom}">
-      <b>${m.nom}</b><br>
-      Classe: ${m.classe}<br>
-      Dose: ${m.dose} | Voie: ${m.voie}<br>
-      Stock: ${m.stock}<br>
-      <input type="number" id="q_${m.id}" value="1" min="1" max="${max}">
-      <button onclick="retirer(${m.id},'${m.nom}')">Retirer</button>
-    </div>`;
-  });
+
+list.innerHTML="";
+
+const q=document.getElementById("search").value || "";
+
+const {data,error}=await supabaseClient
+.from("table_genesi")
+.select("*")
+.ilike("nom",`%${q}%`)
+.order("nom");
+
+if(error){
+list.innerHTML=error.message;
+return;
 }
 
-/* RETRAIT */
+data.forEach(m=>{
+
+if(!canAccess(m.categorie_opioide,m.nom)) return;
+
+const max=Math.max(1,Math.floor(m.stock*0.2));
+
+const img=medicImages[m.nom] || "https://i.imgur.com/hX0th8r.png";
+
+const lower=m.nom.toLowerCase();
+
+let rcpBtn="";
+
+if(rcpLinks[lower]){
+rcpBtn=`<button class="rcp" onclick="window.open('${rcpLinks[lower]}','_blank')">RCP</button>`;
+}
+
+list.innerHTML+=`
+
+<div class="card">
+
+<img src="${img}">
+
+<b>${m.nom}</b><br>
+Classe : ${m.classe}<br>
+Dose : ${m.dose}<br>
+Voie : ${m.voie}<br>
+Stock : ${m.stock}<br><br>
+
+<input type="number" id="q_${m.id}" value="1" min="1" max="${max}">
+<br>
+
+<button onclick="retirer(${m.id},'${m.nom}')">Retirer</button>
+${rcpBtn}
+
+</div>
+
+`;
+
+});
+
+}
+
+
+/* =============================
+RETRAIT
+============================= */
+
 async function retirer(id,nom){
-  const qte=parseInt(document.getElementById(`q_${id}`).value);
-  scanCard(async ()=>{
-    const requirePin=nom.toLowerCase().includes("morphine")||nom.toLowerCase().includes("fentanyl");
-    if(requirePin){showPin(async ()=>{
-      await retireMed(id,nom,qte);
-    });}else{
-      await retireMed(id,nom,qte);
-    }
-  });
-}
 
-async function retireMed(id,nom,qte){
-  const {data}=await supabaseClient.from("table_genesi").select("stock").eq("id",id).single();
-  await supabaseClient.from("table_genesi").update({stock:data.stock-qte}).eq("id",id);
-  addLog("retrait",nom,qte);
-  loadMeds();
-}
+const qte=parseInt(document.getElementById(`q_${id}`).value);
 
-function logout(){localStorage.removeItem("genesi_user"); sessionStorage.removeItem("genesi_session"); location.href="index.html";}
+if(!qte || qte<=0) return;
+
+const {data}=await supabaseClient
+.from("table_genesi")
+.select("stock")
+.eq("id",id)
+.single();
+
+await supabaseClient
+.from("table_genesi")
+.update({stock:data.stock-qte})
+.eq("id",id);
 
 loadMeds();
+}
+
+
+/* =============================
+LOGOUT
+============================= */
+
+function logout(){
+localStorage.removeItem("genesi_user");
+sessionStorage.removeItem("genesi_session");
+location.href="index.html";
+}
+
+loadMeds();
+
 </script>
+
 </body>
 </html>
