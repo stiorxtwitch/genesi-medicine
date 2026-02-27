@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>GENESI – Home</title>
+
 <link rel="icon" href="https://i.imgur.com/vEMjW0C.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -75,19 +76,20 @@ text-align:center;
 }
 
 .search input{
-width:300px;
+width:320px;
 padding:12px;
 border-radius:10px;
 border:none;
 background:#0f172a;
 color:white;
+outline:none;
 }
 
 /* GRID */
 
 #list{
 display:grid;
-grid-template-columns:repeat(auto-fill,minmax(230px,1fr));
+grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
 gap:15px;
 padding:15px;
 }
@@ -139,7 +141,7 @@ button:hover{
 background:#059669;
 }
 
-/* RCP BUTTON */
+/* RCP */
 
 .rcp{
 background:#f59e0b;
@@ -184,10 +186,19 @@ to{opacity:1;}
 
 <script>
 
+/* =============================
+CONFIG SUPABASE
+============================= */
+
 const SUPABASE_URL="https://gktawbaposndfxijkxdk.supabase.co";
 const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdrdGF3YmFwb3NuZGZ4aWpreGRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwNzUyNDUsImV4cCI6MjA3OTY1MTI0NX0.tY-CHuyb2zr9s6hlGkwmrdTvg920VVNghI9S45CjwKk";
 
 const supabaseClient=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+
+/* =============================
+SESSION
+============================= */
 
 const currentUser=JSON.parse(localStorage.getItem("genesi_user"));
 
@@ -196,13 +207,19 @@ alert("Accès refusé");
 location.href="index.html";
 }
 
-/* ADMIN NAV */
 
-if(currentUser.permission==="admin"){
+/* =============================
+ADMIN NAV
+============================= */
+
+if(currentUser.permission === "admin"){
 document.getElementById("adminBar").style.display="flex";
 }
 
-/* IMAGES */
+
+/* =============================
+IMAGES
+============================= */
 
 const medicImages={
 "Epinephrine":"https://i.imgur.com/1BPatJt.png",
@@ -211,7 +228,10 @@ const medicImages={
 "Propofol":"https://i.imgur.com/ex6iI6G.png"
 };
 
-/* RCP LINKS */
+
+/* =============================
+RCP LINKS
+============================= */
 
 const rcpLinks={
 "epinephrine":"https://app.fagg-afmps.be/pharma-status/api/files/62bc79571e5c015ab3fdf6e0",
@@ -221,7 +241,9 @@ const rcpLinks={
 };
 
 
-/* PERMISSIONS */
+/* =============================
+PERMISSIONS
+============================= */
 
 function canAccess(cat,nom){
 
@@ -250,7 +272,10 @@ return true;
 return false;
 }
 
-/* LOAD */
+
+/* =============================
+LOAD MEDS
+============================= */
 
 async function loadMeds(){
 
@@ -311,7 +336,10 @@ ${rcpBtn}
 
 }
 
-/* RETRAIT */
+
+/* =============================
+RETRAIT
+============================= */
 
 async function retirer(id,nom){
 
@@ -333,7 +361,10 @@ await supabaseClient
 loadMeds();
 }
 
-/* LOGOUT */
+
+/* =============================
+LOGOUT
+============================= */
 
 function logout(){
 localStorage.removeItem("genesi_user");
@@ -344,5 +375,6 @@ location.href="index.html";
 loadMeds();
 
 </script>
+
 </body>
 </html>
