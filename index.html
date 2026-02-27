@@ -7,184 +7,169 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-
 body{
-background:#020617;
-font-family:Arial;
-margin:0;
-height:100vh;
-display:flex;
-justify-content:center;
-align-items:center;
-color:white;
+  font-family:Arial;
+  background: linear-gradient(135deg,#020617 0%,#1e293b 100%);
+  margin:0;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:100vh;
+  color:white;
 }
 
-/* CARD LOGIN */
-
-.login{
-background:#020617;
-border:1px solid #1e293b;
-padding:40px;
-border-radius:14px;
-width:360px;
-text-align:center;
-animation:fade .5s ease;
+.login-container{
+  background:#020617;
+  border:1px solid #1e293b;
+  padding:40px;
+  border-radius:14px;
+  width:360px;
+  text-align:center;
+  animation:fade .5s ease;
 }
 
 .logo{
-width:110px;
-margin-bottom:20px;
+  width:110px;
+  margin-bottom:20px;
 }
 
 input{
-width:100%;
-padding:12px;
-margin:10px 0;
-border:none;
-border-radius:10px;
-background:#0f172a;
-color:white;
+  width:100%;
+  padding:12px;
+  margin:10px 0;
+  border:none;
+  border-radius:10px;
+  background:#0f172a;
+  color:white;
+  font-size:16px;
 }
 
 button{
-width:100%;
-padding:12px;
-border:none;
-border-radius:10px;
-background:#10b981;
-color:white;
-cursor:pointer;
-transition:.2s;
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  background:#10b981;
+  color:white;
+  font-size:16px;
+  cursor:pointer;
+  transition:.2s;
 }
-
 button:hover{
-background:#059669;
+  background:#059669;
 }
 
 .error{
-color:#ef4444;
-display:none;
+  color:#ef4444;
+  display:none;
+  margin-top:10px;
 }
 
 @keyframes fade{
-from{opacity:0;transform:translateY(10px)}
+  from{opacity:0;transform:translateY(10px)}
+  to{opacity:1}
 }
 
-/* OVERLAY SCAN */
-
+/* SCAN OVERLAY */
 .scanOverlay{
-position:fixed;
-inset:0;
-background:#000c;
-display:none;
-justify-content:center;
-align-items:center;
-flex-direction:column;
-z-index:999;
+  position:fixed;
+  inset:0;
+  background:#000c;
+  display:none;
+  justify-content:center;
+  align-items:center;
+  flex-direction:column;
+  z-index:999;
 }
 
-.machine{
-width:260px;
-margin-bottom:20px;
-}
-
-.cardImg{
-width:160px;
-position:absolute;
-pointer-events:none;
-transition:.05s;
-}
-
-.success{
-color:#22c55e;
-font-size:22px;
-margin-top:20px;
-display:none;
-}
-
+.machine{width:260px;margin-bottom:20px;}
+.cardImg{width:160px;position:absolute;pointer-events:none;transition:.05s;}
+.success{color:#22c55e;font-size:22px;margin-top:20px;display:none;}
 </style>
 </head>
 
 <body>
 
-<div class="login">
-<img src="https://i.imgur.com/vEMjW0C.png" class="logo">
-<h2>GENESI</h2>
+<div class="login-container">
+  <img src="https://i.imgur.com/vEMjW0C.png" class="logo">
+  <h2>GENESI</h2>
 
-<input id="username" placeholder="Utilisateur">
-<input id="password" type="password" placeholder="Mot de passe">
+  <input id="usernameInput" placeholder="Nom d'utilisateur">
+  <input id="passwordInput" type="password" placeholder="Mot de passe">
 
-<button onclick="login()">Connexion</button>
-<div id="error" class="error"></div>
+  <button id="loginBtn" onclick="login()">Se connecter</button>
+
+  <div id="error" class="error"></div>
 </div>
 
 <!-- SCAN -->
 <div id="scanOverlay" class="scanOverlay">
-<img src="https://i.imgur.com/WHCRXGk.png" class="machine">
-<img src="https://i.imgur.com/CzPOlwn.png" id="card" class="cardImg">
-<div id="scanOK" class="success">✔ Carte validée</div>
+  <img src="https://i.imgur.com/WHCRXGk.png" class="machine">
+  <img src="https://i.imgur.com/CzPOlwn.png" id="card" class="cardImg">
+  <div id="scanOK" class="success">✔ Carte validée</div>
 </div>
 
 <script>
-
 const SUPABASE_URL="https://gktawbaposndfxijkxdk.supabase.co";
 const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdrdGF3YmFwb3NuZGZ4aWpreGRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwNzUyNDUsImV4cCI6MjA3OTY1MTI0NX0.tY-CHuyb2zr9s6hlGkwmrdTvg920VVNghI9S45CjwKk";
 
-const supabaseClient=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-
-/* scan carte */
-function startScan(callback){
-
-const overlay=document.getElementById("scanOverlay");
-const card=document.getElementById("card");
-const ok=document.getElementById("scanOK");
-
-overlay.style.display="flex";
-ok.style.display="none";
-
-document.onmousemove=e=>{
-card.style.left=e.clientX-80+"px";
-card.style.top=e.clientY-50+"px";
-};
-
-overlay.onclick=()=>{
-ok.style.display="block";
-setTimeout(()=>{
-overlay.style.display="none";
-callback();
-},3000);
-};
-
-}
-
-/* LOGIN */
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 async function login(){
+  const username = document.getElementById("usernameInput").value;
+  const password = document.getElementById("passwordInput").value;
+  const errorDiv = document.getElementById("error");
 
-const username=usernameInput.value;
-const password=passwordInput.value;
+  errorDiv.style.display="none";
+  if(!username || !password){ errorDiv.innerText="Champs manquants"; errorDiv.style.display="block"; return; }
 
-const {data}=await supabaseClient.rpc("login_genesi_check",{
-p_username:username,
-p_password:password
-});
+  const { data, error } = await supabaseClient.rpc("login_genesi_check",{
+    p_username: username,
+    p_password: password
+  });
 
-if(!data || data.length===0){
-error.innerText="Identifiants incorrects";
-error.style.display="block";
-return;
+  if(error || !data || data.length===0){
+    errorDiv.innerText="Identifiants incorrects";
+    errorDiv.style.display="block";
+    return;
+  }
+
+  localStorage.setItem("genesi_user", JSON.stringify(data[0]));
+  sessionStorage.setItem("genesi_session","active");
+
+  startScan(()=>{
+    location.href="home.html";
+  });
 }
 
-localStorage.setItem("genesi_user", JSON.stringify(data[0]));
-sessionStorage.setItem("genesi_session","active");
+/* SCAN */
+function startScan(callback){
+  const overlay=document.getElementById("scanOverlay");
+  const card=document.getElementById("card");
+  const ok=document.getElementById("scanOK");
 
-/* scan obligatoire */
-startScan(()=>{
-location.href="home.html";
-});
+  overlay.style.display="flex";
+  ok.style.display="none";
 
+  document.onmousemove=e=>{
+    card.style.left=e.clientX-80+"px";
+    card.style.top=e.clientY-50+"px";
+  };
+
+  overlay.onclick=()=>{
+    ok.style.display="block";
+    setTimeout(()=>{
+      overlay.style.display="none";
+      callback();
+    },3000);
+  };
 }
 
+// Enter clavier
+document.addEventListener("keydown", e=>{
+  if(e.key==="Enter") login();
+});
 </script>
+
 </body>
 </html>
