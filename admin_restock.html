@@ -2,117 +2,33 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>GENESI – Admin Stock</title>
+<title>GENESI – Restock</title>
 <link rel="icon" href="https://i.imgur.com/vEMjW0C.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-
-body{
-  font-family:Arial;
-  background:#020617;
-  color:white;
-  margin:0;
-}
-
-header{
-  background:#020617;
-  padding:15px 25px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  border-bottom:1px solid #0f172a;
-}
-
-.header-left{
-  display:flex;
-  align-items:center;
-  gap:15px;
-}
-
-.logo{
-  height:45px;
-}
-
-.back-btn{
-  background:#6366f1;
-  color:white;
-  padding:8px 15px;
-  border-radius:6px;
-  text-decoration:none;
-  transition:0.2s;
-}
-
-.back-btn:hover{
-  background:#4f46e5;
-  transform:translateY(-2px);
-}
-
-/* CARD */
-
+body{font-family:Arial;background:#020617;color:white;margin:0;padding:20px}
 .card{
-  background:#020617;
-  margin:15px;
-  padding:18px;
-  border-radius:12px;
-  border:1px solid #1e293b;
-  animation:fadeUp 0.4s ease;
-  transition:0.25s;
+background:#020617;
+border:1px solid #1e293b;
+padding:15px;
+margin:10px;
+border-radius:10px;
 }
-
-.card:hover{
-  border:1px solid #3b82f6;
-  transform:translateY(-4px);
-  box-shadow:0 0 20px rgba(59,130,246,0.2);
-}
-
-input{
-  width:90px;
-  padding:8px;
-  border-radius:6px;
-  border:none;
-  background:#0f172a;
-  color:white;
-}
-
 button{
-  background:#10b981;
-  color:white;
-  border:none;
-  padding:8px 14px;
-  border-radius:6px;
-  cursor:pointer;
-  transition:0.2s;
+background:#10b981;
+border:none;
+padding:6px 12px;
+border-radius:6px;
+color:white;
+cursor:pointer;
 }
-
-button:hover{
-  background:#059669;
-  transform:scale(1.05);
-}
-
-.loader{
-  text-align:center;
-  padding:40px;
-  opacity:0.6;
-}
-
-@keyframes fadeUp{
-  from{opacity:0; transform:translateY(15px);}
-  to{opacity:1; transform:translateY(0);}
-}
-
 </style>
 </head>
 
 <body>
 
-<header>
-  <div class="header-left">
-    <img src="https://i.imgur.com/vEMjW0C.png" class="logo">
-    <h2>ADMIN – Restock</h2>
-  </div>
-  <a href="home.html" class="back-btn">← Retour</a>
-</header>
+<h2>ADMIN – Restock</h2>
 
 <div id="list"></div>
 
@@ -120,72 +36,73 @@ button:hover{
 
 const SUPABASE_URL="https://gktawbaposndfxijkxdk.supabase.co";
 const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdrdGF3YmFwb3NuZGZ4aWpreGRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwNzUyNDUsImV4cCI6MjA3OTY1MTI0NX0.tY-CHuyb2zr9s6hlGkwmrdTvg920VVNghI9S45CjwKk";
+
 const supabaseClient=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
-/* CHECK ADMIN */
-const currentUser=JSON.parse(localStorage.getItem('genesi_user'));
+const currentUser=JSON.parse(localStorage.getItem("genesi_user"));
+
 if(!currentUser || currentUser.permission!=="admin"){
-  alert("Accès refusé");
-  location.href="home.html";
+alert("Accès refusé");
+location.href="home.html";
+}
+
+/* LOG LOCAL */
+function addLog(action, medicament, quantite){
+
+let logs=JSON.parse(localStorage.getItem("genesi_logs")) || [];
+
+logs.push({
+username: currentUser.username,
+action,
+medicament,
+quantite,
+date:new Date().toISOString()
+});
+
+localStorage.setItem("genesi_logs", JSON.stringify(logs));
 }
 
 async function load(){
 
-  const list=document.getElementById("list");
-  list.innerHTML='<div class="loader">Chargement...</div>';
+const {data}=await supabaseClient
+.from("table_genesi")
+.select("*")
+.order("nom");
 
-  const {data,error}=await supabaseClient
-  .from("table_genesi")
-  .select("*")
-  .order("nom");
+list.innerHTML="";
 
-  if(error){
-    list.innerHTML=error.message;
-    return;
-  }
+data.forEach(m=>{
+list.innerHTML+=`
+<div class="card">
 
-  list.innerHTML="";
+<b>${m.nom}</b><br>
+Stock : ${m.stock}<br><br>
 
-  data.forEach(m=>{
-    list.innerHTML+=`
-    <div class="card">
+<input type="number" id="s_${m.id}" value="10">
 
-      <b style="font-size:18px">${m.nom}</b>
-      <div style="opacity:0.7">${m.classe}</div><br>
+<button onclick="restock(${m.id}, ${m.stock}, '${m.nom}')">
+Ajouter
+</button>
 
-      Stock actuel : <b>${m.stock}</b><br><br>
-
-      <input type="number" id="s_${m.id}" value="10" min="1">
-      <button onclick="restock(${m.id}, ${m.stock}, '${m.nom}')">
-      Ajouter
-      </button>
-
-    </div>
-    `;
-  });
+</div>
+`;
+});
 
 }
 
 async function restock(id, stock, nom){
 
-  const qte=parseInt(document.getElementById(`s_${id}`).value);
+const qte=parseInt(document.getElementById(`s_${id}`).value);
+if(!qte) return;
 
-  if(!qte || qte<=0) return alert("Quantité invalide");
+await supabaseClient
+.from("table_genesi")
+.update({stock:stock+qte})
+.eq("id",id);
 
-  await supabaseClient
-  .from("table_genesi")
-  .update({stock: stock + qte})
-  .eq("id", id);
+addLog("restock", nom, qte);
 
-  await supabaseClient.from("logs_genesi").insert({
-    username: currentUser.username,
-    action:"restock",
-    medicament:nom,
-    quantite:qte,
-    created_at:new Date().toISOString()
-  });
-
-  load();
+load();
 }
 
 load();
