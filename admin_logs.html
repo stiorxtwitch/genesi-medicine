@@ -3,41 +3,59 @@
 <head>
 <meta charset="UTF-8">
 <title>GENESI – Logs</title>
-<link rel="icon" href="https://i.imgur.com/vEMjW0C.png">
 
 <style>
+
 body{
 font-family:Arial;
 background:#020617;
 color:white;
 margin:0;
-padding:20px;
+padding:25px;
+}
+
+h2{
+margin-bottom:20px;
 }
 
 .log{
 background:#020617;
 border:1px solid #1e293b;
-padding:12px;
-margin:10px;
-border-radius:8px;
-animation:fade .4s;
+padding:15px;
+margin-bottom:12px;
+border-radius:12px;
+animation:fade .35s ease;
+transition:.2s;
+}
+
+.log:hover{
+border:1px solid #3b82f6;
 }
 
 .date{
-opacity:.6;
 font-size:12px;
+opacity:.6;
+margin-bottom:6px;
 }
+
+.action{
+font-weight:bold;
+}
+
+.restock{color:#3b82f6}
+.retrait{color:#f59e0b}
 
 @keyframes fade{
 from{opacity:0;transform:translateY(10px)}
 to{opacity:1}
 }
+
 </style>
 </head>
 
 <body>
 
-<h2>ADMIN – Logs</h2>
+<h2>ADMIN – Logs activité</h2>
 
 <div id="logs"></div>
 
@@ -72,7 +90,10 @@ container.innerHTML+=`
 <div class="date">${date}</div>
 
 <b>${l.username}</b><br>
-Action : ${l.action}<br>
+<span class="action ${l.action}">
+${l.action.toUpperCase()}
+</span><br>
+
 Médicament : ${l.medicament}<br>
 Quantité : ${l.quantite}
 
