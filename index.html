@@ -2,174 +2,347 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>GENESI – Connexion</title>
+<title>GENESI – Home</title>
 <link rel="icon" href="https://i.imgur.com/vEMjW0C.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
+
 body{
-  font-family:Arial;
-  background: linear-gradient(135deg,#020617 0%,#1e293b 100%);
-  margin:0;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  min-height:100vh;
-  color:white;
+font-family:Arial;
+background:#020617;
+color:white;
+margin:0;
 }
 
-.login-container{
-  background:#020617;
-  border:1px solid #1e293b;
-  padding:40px;
-  border-radius:14px;
-  width:360px;
-  text-align:center;
-  animation:fade .5s ease;
+/* HEADER */
+
+header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:15px 25px;
+background:#020617;
+border-bottom:1px solid #1e293b;
 }
 
 .logo{
-  width:110px;
-  margin-bottom:20px;
+height:42px;
 }
 
-input{
-  width:100%;
-  padding:12px;
-  margin:10px 0;
-  border:none;
-  border-radius:10px;
-  background:#0f172a;
-  color:white;
-  font-size:16px;
+.logout{
+background:#ef4444;
+border:none;
+padding:8px 15px;
+border-radius:8px;
+cursor:pointer;
+transition:.2s;
+}
+
+.logout:hover{
+background:#dc2626;
+}
+
+/* ADMIN BAR */
+
+.admin-bar{
+display:none;
+gap:10px;
+padding:12px;
+background:#020617;
+border-bottom:1px solid #1e293b;
+justify-content:center;
+}
+
+.admin-bar button{
+background:#3b82f6;
+border:none;
+padding:8px 14px;
+border-radius:8px;
+cursor:pointer;
+transition:.2s;
+}
+
+.admin-bar button:hover{
+background:#2563eb;
+}
+
+/* SEARCH */
+
+.search{
+padding:20px;
+text-align:center;
+}
+
+.search input{
+width:300px;
+padding:12px;
+border-radius:10px;
+border:none;
+background:#0f172a;
+color:white;
+}
+
+/* GRID */
+
+#list{
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(230px,1fr));
+gap:15px;
+padding:15px;
+}
+
+/* CARD */
+
+.card{
+background:#1e293b;
+border-radius:14px;
+padding:15px;
+text-align:center;
+transition:.25s;
+animation:fade .35s ease;
+}
+
+.card:hover{
+transform:translateY(-5px);
+border:1px solid #3b82f6;
+}
+
+.card img{
+width:90px;
+height:90px;
+object-fit:contain;
+margin-bottom:10px;
+}
+
+input[type=number]{
+width:70px;
+padding:7px;
+border:none;
+border-radius:8px;
+background:#0f172a;
+color:white;
 }
 
 button{
-  width:100%;
-  padding:12px;
-  border:none;
-  border-radius:10px;
-  background:#10b981;
-  color:white;
-  font-size:16px;
-  cursor:pointer;
-  transition:.2s;
-}
-button:hover{
-  background:#059669;
+background:#10b981;
+border:none;
+padding:7px 14px;
+border-radius:8px;
+color:white;
+cursor:pointer;
+transition:.2s;
+margin-top:8px;
 }
 
-.error{
-  color:#ef4444;
-  display:none;
-  margin-top:10px;
+button:hover{
+background:#059669;
+}
+
+/* RCP BUTTON */
+
+.rcp{
+background:#f59e0b;
+}
+
+.rcp:hover{
+background:#d97706;
 }
 
 @keyframes fade{
-  from{opacity:0;transform:translateY(10px)}
-  to{opacity:1}
+from{opacity:0; transform:translateY(15px)}
+to{opacity:1;}
 }
 
-/* SCAN OVERLAY */
-.scanOverlay{
-  position:fixed;
-  inset:0;
-  background:#000c;
-  display:none;
-  justify-content:center;
-  align-items:center;
-  flex-direction:column;
-  z-index:999;
-}
-
-.machine{width:260px;margin-bottom:20px;}
-.cardImg{width:160px;position:absolute;pointer-events:none;transition:.05s;}
-.success{color:#22c55e;font-size:22px;margin-top:20px;display:none;}
 </style>
 </head>
 
 <body>
 
-<div class="login-container">
-  <img src="https://i.imgur.com/vEMjW0C.png" class="logo">
-  <h2>GENESI</h2>
-
-  <input id="usernameInput" placeholder="Nom d'utilisateur">
-  <input id="passwordInput" type="password" placeholder="Mot de passe">
-
-  <button id="loginBtn" onclick="login()">Se connecter</button>
-
-  <div id="error" class="error"></div>
+<header>
+<div style="display:flex;align-items:center;gap:10px;">
+<img src="https://i.imgur.com/vEMjW0C.png" class="logo">
+<b>GENESI</b>
 </div>
 
-<!-- SCAN -->
-<div id="scanOverlay" class="scanOverlay">
-  <img src="https://i.imgur.com/WHCRXGk.png" class="machine">
-  <img src="https://i.imgur.com/CzPOlwn.png" id="card" class="cardImg">
-  <div id="scanOK" class="success">✔ Carte validée</div>
+<button class="logout" onclick="logout()">Déconnexion</button>
+</header>
+
+
+<!-- ADMIN NAV -->
+<div id="adminBar" class="admin-bar">
+<button onclick="location.href='admin_restock.html'">📦 Restock</button>
+<button onclick="location.href='admin_logs.html'">📋 Logs</button>
 </div>
+
+
+<div class="search">
+<input id="search" placeholder="Recherche médicament..." onkeyup="loadMeds()">
+</div>
+
+<div id="list"></div>
 
 <script>
+
 const SUPABASE_URL="https://gktawbaposndfxijkxdk.supabase.co";
 const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdrdGF3YmFwb3NuZGZ4aWpreGRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwNzUyNDUsImV4cCI6MjA3OTY1MTI0NX0.tY-CHuyb2zr9s6hlGkwmrdTvg920VVNghI9S45CjwKk";
 
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabaseClient=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
-async function login(){
-  const username = document.getElementById("usernameInput").value;
-  const password = document.getElementById("passwordInput").value;
-  const errorDiv = document.getElementById("error");
+const currentUser=JSON.parse(localStorage.getItem("genesi_user"));
 
-  errorDiv.style.display="none";
-  if(!username || !password){ errorDiv.innerText="Champs manquants"; errorDiv.style.display="block"; return; }
-
-  const { data, error } = await supabaseClient.rpc("login_genesi_check",{
-    p_username: username,
-    p_password: password
-  });
-
-  if(error || !data || data.length===0){
-    errorDiv.innerText="Identifiants incorrects";
-    errorDiv.style.display="block";
-    return;
-  }
-
-  localStorage.setItem("genesi_user", JSON.stringify(data[0]));
-  sessionStorage.setItem("genesi_session","active");
-
-  startScan(()=>{
-    location.href="home.html";
-  });
+if(!currentUser || !sessionStorage.getItem("genesi_session")){
+alert("Accès refusé");
+location.href="index.html";
 }
 
-/* SCAN */
-function startScan(callback){
-  const overlay=document.getElementById("scanOverlay");
-  const card=document.getElementById("card");
-  const ok=document.getElementById("scanOK");
+/* ADMIN NAV */
 
-  overlay.style.display="flex";
-  ok.style.display="none";
-
-  document.onmousemove=e=>{
-    card.style.left=e.clientX-80+"px";
-    card.style.top=e.clientY-50+"px";
-  };
-
-  overlay.onclick=()=>{
-    ok.style.display="block";
-    setTimeout(()=>{
-      overlay.style.display="none";
-      callback();
-    },3000);
-  };
+if(currentUser.permission==="admin"){
+document.getElementById("adminBar").style.display="flex";
 }
 
-// Enter clavier
-document.addEventListener("keydown", e=>{
-  if(e.key==="Enter") login();
+/* IMAGES */
+
+const medicImages={
+"Epinephrine":"https://i.imgur.com/1BPatJt.png",
+"Morphine":"https://i.imgur.com/Doe8vqs.png",
+"Fentanyl":"https://i.imgur.com/gCSPBmd.jpeg",
+"Propofol":"https://i.imgur.com/ex6iI6G.png"
+};
+
+/* RCP LINKS */
+
+const rcpLinks={
+"epinephrine":"https://app.fagg-afmps.be/pharma-status/api/files/62bc79571e5c015ab3fdf6e0",
+"morphine":"https://app.fagg-afmps.be/pharma-status/api/files/62bc5fab1e5c015ab3ce1c94",
+"fentanyl":"https://app.fagg-afmps.be/pharma-status/api/files/62bc83151e5c015ab30be808",
+"propofol":"https://app.fagg-afmps.be/pharma-status/api/files/62bc677e1e5c015ab3dec755"
+};
+
+
+/* PERMISSIONS */
+
+function canAccess(cat,nom){
+
+const p=currentUser.permission;
+const n=nom.toLowerCase();
+
+if(p==="admin" || p==="level3") return true;
+
+if(p==="level2" && cat!=="fort") return true;
+
+if(p==="level1"){
+
+if(
+n.includes("morphine") ||
+n.includes("fentanyl") ||
+n.includes("propofol") ||
+n.includes("epinephrine") ||
+n.includes("epinéphrine")
+){
+return false;
+}
+
+return true;
+}
+
+return false;
+}
+
+/* LOAD */
+
+async function loadMeds(){
+
+list.innerHTML="";
+
+const q=document.getElementById("search").value || "";
+
+const {data,error}=await supabaseClient
+.from("table_genesi")
+.select("*")
+.ilike("nom",`%${q}%`)
+.order("nom");
+
+if(error){
+list.innerHTML=error.message;
+return;
+}
+
+data.forEach(m=>{
+
+if(!canAccess(m.categorie_opioide,m.nom)) return;
+
+const max=Math.max(1,Math.floor(m.stock*0.2));
+
+const img=medicImages[m.nom] || "https://i.imgur.com/hX0th8r.png";
+
+const lower=m.nom.toLowerCase();
+
+let rcpBtn="";
+
+if(rcpLinks[lower]){
+rcpBtn=`<button class="rcp" onclick="window.open('${rcpLinks[lower]}','_blank')">RCP</button>`;
+}
+
+list.innerHTML+=`
+
+<div class="card">
+
+<img src="${img}">
+
+<b>${m.nom}</b><br>
+Classe : ${m.classe}<br>
+Dose : ${m.dose}<br>
+Voie : ${m.voie}<br>
+Stock : ${m.stock}<br><br>
+
+<input type="number" id="q_${m.id}" value="1" min="1" max="${max}">
+<br>
+
+<button onclick="retirer(${m.id},'${m.nom}')">Retirer</button>
+${rcpBtn}
+
+</div>
+
+`;
+
 });
-</script>
 
+}
+
+/* RETRAIT */
+
+async function retirer(id,nom){
+
+const qte=parseInt(document.getElementById(`q_${id}`).value);
+
+if(!qte || qte<=0) return;
+
+const {data}=await supabaseClient
+.from("table_genesi")
+.select("stock")
+.eq("id",id)
+.single();
+
+await supabaseClient
+.from("table_genesi")
+.update({stock:data.stock-qte})
+.eq("id",id);
+
+loadMeds();
+}
+
+/* LOGOUT */
+
+function logout(){
+localStorage.removeItem("genesi_user");
+sessionStorage.removeItem("genesi_session");
+location.href="index.html";
+}
+
+loadMeds();
+
+</script>
 </body>
 </html>
