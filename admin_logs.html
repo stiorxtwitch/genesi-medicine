@@ -39,14 +39,7 @@ header{
   padding:8px 15px;
   border-radius:6px;
   text-decoration:none;
-  transition:0.2s;
 }
-
-.back-btn:hover{
-  background:#4f46e5;
-}
-
-/* LOG CARD */
 
 .log{
   background:#020617;
@@ -54,35 +47,25 @@ header{
   padding:14px;
   border-radius:10px;
   border:1px solid #1e293b;
-  animation:fadeUp 0.4s ease;
-  transition:0.2s;
-}
-
-.log:hover{
-  border:1px solid #3b82f6;
+  animation:fadeUp .4s ease;
 }
 
 .date{
+  opacity:.6;
   font-size:12px;
-  opacity:0.6;
 }
 
-.action{
-  font-weight:bold;
-}
-
-.restock{ color:#3b82f6; }
-.retrait{ color:#f59e0b; }
+.restock{color:#3b82f6;}
+.retrait{color:#f59e0b;}
 
 .loader{
   text-align:center;
   padding:40px;
-  opacity:0.6;
 }
 
 @keyframes fadeUp{
-  from{opacity:0; transform:translateY(10px);}
-  to{opacity:1; transform:translateY(0);}
+from{opacity:0;transform:translateY(10px)}
+to{opacity:1;transform:translateY(0)}
 }
 
 </style>
@@ -91,11 +74,11 @@ header{
 <body>
 
 <header>
-  <div class="header-left">
-    <img src="https://i.imgur.com/vEMjW0C.png" class="logo">
-    <h2>ADMIN – Logs</h2>
-  </div>
-  <a href="home.html" class="back-btn">← Retour</a>
+<div class="header-left">
+<img src="https://i.imgur.com/vEMjW0C.png" class="logo">
+<h2>ADMIN – Logs</h2>
+</div>
+<a href="home.html" class="back-btn">← Retour</a>
 </header>
 
 <div id="logs"></div>
@@ -108,7 +91,6 @@ const supabaseClient=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
 /* CHECK ADMIN */
 const currentUser=JSON.parse(localStorage.getItem("genesi_user"));
-
 if(!currentUser || currentUser.permission!=="admin"){
   alert("Accès refusé");
   location.href="home.html";
@@ -116,47 +98,48 @@ if(!currentUser || currentUser.permission!=="admin"){
 
 async function loadLogs(){
 
-  const logsDiv=document.getElementById("logs");
-  logsDiv.innerHTML='<div class="loader">Chargement...</div>';
+const logsDiv=document.getElementById("logs");
+logsDiv.innerHTML='<div class="loader">Chargement...</div>';
 
-  const {data,error}=await supabaseClient
-  .from("logs_genesi")
-  .select("*")
-  .order("id",{ascending:false});
+const {data,error}=await supabaseClient
+.from("logs_genesi")
+.select("*")
+.order("created_at",{ascending:false});
 
-  if(error){
-    logsDiv.innerHTML=error.message;
-    return;
-  }
+if(error){
+logsDiv.innerHTML=error.message;
+return;
+}
 
-  if(!data || data.length===0){
-    logsDiv.innerHTML='<div class="log">Aucun log</div>';
-    return;
-  }
+if(!data || data.length===0){
+logsDiv.innerHTML="<div class='log'>Aucun log</div>";
+return;
+}
 
-  logsDiv.innerHTML="";
+logsDiv.innerHTML="";
 
-  data.forEach(l=>{
+data.forEach(l=>{
 
-    const date = l.created_at 
-      ? new Date(l.created_at).toLocaleString()
-      : "";
+const date=l.created_at 
+? new Date(l.created_at).toLocaleString()
+: "Date inconnue";
 
-    logsDiv.innerHTML+=`
-    <div class="log">
+logsDiv.innerHTML+=`
+<div class="log">
 
-      <div class="date">${date}</div>
+<div class="date">${date}</div>
 
-      <b>${l.username}</b> —
-      <span class="action ${l.action}">
-        ${l.action.toUpperCase()}
-      </span> —
-      ${l.medicament} —
-      <b>${l.quantite}</b>
+<b>${l.username || "inconnu"}</b> —
+<span class="${l.action}">
+${(l.action || "").toUpperCase()}
+</span> —
+${l.medicament || "?"} —
+<b>${l.quantite || "?"}</b>
 
-    </div>
-    `;
-  });
+</div>
+`;
+
+});
 
 }
 
