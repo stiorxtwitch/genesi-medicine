@@ -165,6 +165,7 @@ button:hover{
 
 const SUPABASE_URL = "https://gktawbaposndfxijkxdk.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdrdGF3YmFwb3NuZGZ4aWpreGRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwNzUyNDUsImV4cCI6MjA3OTY1MTI0NX0.tY-CHuyb2zr9s6hlGkwmrdTvg920VVNghI9S45CjwKk";
+
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 /* SESSION */
@@ -181,16 +182,33 @@ if(currentUser.permission==="admin"){
   document.getElementById("adminNav").style.display="block";
 }
 
-/* PERMISSIONS */
-function canAccess(cat){
+/* ================= PERMISSIONS ================= */
+/*
+Nouvelle logique :
+admin / level3 = accès total
+level2 = bloque opioïdes forts
+level1 = accès total sauf epinéphrine
+*/
+function canAccess(cat, nom){
+
   const p=currentUser.permission;
+
   if(p==="admin" || p==="level3") return true;
+
   if(p==="level2" && cat!=="fort") return true;
-  if(p==="level1" && cat==="none") return true;
+
+  if(p==="level1"){
+    const n = nom.toLowerCase();
+    if(n==="epinephrine" || n==="epinéphrine"){
+      return false;
+    }
+    return true;
+  }
+
   return false;
 }
 
-/* LOAD MEDS */
+/* ================= LOAD MEDS ================= */
 async function loadMeds(){
 
   const list=document.getElementById("list");
@@ -213,7 +231,7 @@ async function loadMeds(){
 
   data.forEach(m=>{
 
-    if(!canAccess(m.categorie_opioide)) return;
+    if(!canAccess(m.categorie_opioide, m.nom)) return;
 
     const max=Math.max(1, Math.floor(m.stock*0.2));
 
@@ -240,7 +258,7 @@ async function loadMeds(){
 
 }
 
-/* RETRAIT */
+/* ================= RETRAIT ================= */
 async function retirer(id,nom){
 
   const qte=parseInt(document.getElementById(`q_${id}`).value);
